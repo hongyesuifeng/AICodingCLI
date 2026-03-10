@@ -11,6 +11,8 @@ Codex CLI 是 OpenAI 开发的命令行 AI 编程代理，采用 Rust + TypeScri
 | **主要语言** | Rust + TypeScript |
 | **运行时** | Node.js 16+ |
 | **包管理** | Cargo + npm |
+| **开源状态** | Apache 2.0 |
+| **底层模型** | GPT-4o / o1 / o3 |
 
 ---
 
@@ -64,9 +66,9 @@ codex/
 
 ## 核心技术原理
 
-### 1. 安全沙箱系统
+### 1. 安全沙箱系统 (核心竞争力)
 
-Codex CLI 最核心的特性是其多平台安全沙箱实现：
+Codex CLI 最核心的特性是其多平台安全沙箱实现，这是与其他 AI 编程工具最大的区别：
 
 ```rust
 // 沙箱架构示意
@@ -467,6 +469,157 @@ config = ".codex/hooks.toml"
 
 ---
 
+## 日常工作实战指南
+
+### 场景一：新项目初始化
+
+```bash
+# 1. 创建项目目录并初始化
+mkdir my-project && cd my-project
+codex init
+
+# 2. 让 AI 帮你搭建项目结构
+codex chat
+> 帮我创建一个 TypeScript + React + Vite 项目，包含 ESLint 和 Prettier 配置
+
+# 3. 设置项目特定的安全边界
+codex config set sandbox.paths.write "$(pwd)"
+```
+
+### 场景二：代码审查
+
+```bash
+# 审查最近的提交
+codex exec "审查最近 3 个 git commit 的代码变更"
+
+# 审查特定文件
+codex exec "审查 src/api/*.ts 文件的安全性和性能"
+
+# 使用技能进行深度审查
+codex skills run code-review --files src/
+```
+
+### 场景三：重构任务
+
+```bash
+# 渐进式重构
+codex chat
+> 我需要把这个 JavaScript 项目迁移到 TypeScript，请先分析项目结构，然后制定迁移计划
+
+# 执行重构步骤
+> 按照 plan，先转换 utils 目录下的文件
+```
+
+### 场景四：调试问题
+
+```bash
+# 让 AI 分析错误日志
+codex exec "分析这个错误日志并给出解决方案" < error.log
+
+# 交互式调试
+codex chat
+> 运行 npm test 失败了，帮我分析测试失败的原因
+```
+
+### 场景五：文档生成
+
+```bash
+# 生成 API 文档
+codex exec "为 src/api/ 目录下的所有函数生成 JSDoc 文档"
+
+# 生成 README
+codex exec "根据 package.json 和项目结构生成 README.md"
+```
+
+---
+
+## 高级技巧
+
+### 1. 沙箱策略最佳实践
+
+```bash
+# 开发环境：宽松模式
+codex --sandbox=permissive --allow-path=$(pwd) chat
+
+# 生产环境：严格模式 + 限制路径
+codex --sandbox=strict \
+  --allow-path=/app/src:ro \
+  --allow-path=/app/tests:rw \
+  chat
+```
+
+### 2. 技能开发模式
+
+```python
+# .codex/skills/dev-helper/skill.py
+from codex import Skill, Context
+import subprocess
+
+class DevHelperSkill(Skill):
+    """开发辅助技能"""
+
+    name = "dev-helper"
+    description = "开发辅助工具集"
+
+    async def execute(self, context: Context):
+        # 获取项目信息
+        package_json = await context.read_file("package.json")
+
+        # 运行测试
+        test_result = await context.run_command("npm test")
+
+        # 如果测试失败，自动修复
+        if test_result.failed:
+            await context.chat("测试失败了，请帮我修复")
+
+        return test_result
+```
+
+### 3. 钩子高级配置
+
+```toml
+# .codex/hooks.toml
+
+# 代码保存时自动格式化
+[[hooks]]
+name = "auto-format"
+trigger = "file-save"
+pattern = "**/*.{ts,tsx,js,jsx}"
+command = "prettier --write {file}"
+
+# Python 文件自动检查
+[[hooks]]
+name = "python-lint"
+trigger = "file-save"
+pattern = "*.py"
+command = "ruff check --fix {file} && mypy {file}"
+
+# 提交前检查
+[[hooks]]
+name = "pre-commit"
+trigger = "command-pre"
+command_pattern = "git commit*"
+command = "npm run lint && npm test"
+abort_on_failure = true
+```
+
+### 4. MCP 工具集成
+
+```bash
+# 配置 GitHub MCP
+codex mcp add github --env GITHUB_TOKEN=$GITHUB_TOKEN
+
+# 配置数据库 MCP
+codex mcp add postgres --args "postgresql://localhost/mydb"
+
+# 在对话中使用
+codex chat
+> 使用 GitHub 工具查看最近的 issues
+> 查询数据库中的用户表结构
+```
+
+---
+
 ## 最佳实践
 
 ### 1. 安全配置
@@ -510,6 +663,52 @@ trigger = "file-save"
 pattern = "src/**/*.ts"
 condition = "is-typeScript-file"
 command = "prettier --write {file}"
+```
+
+---
+
+## 与 Claude Code / OpenCode 对比分析
+
+| 特性 | Codex CLI | Claude Code | OpenCode |
+|------|-----------|-------------|----------|
+| **核心优势** | 安全沙箱 | 上下文理解 | 全栈平台 |
+| **底层模型** | GPT-4o/o1/o3 | Claude 4.5/4.6 | 多模型支持 |
+| **开源状态** | Apache 2.0 | 闭源 | 开源 |
+| **沙箱安全** | 原生多平台 | 权限系统 | 系统沙箱 |
+| **技能系统** | Python | Markdown | TypeScript |
+| **桌面应用** | 无 | 无 | Tauri |
+| **Web 界面** | 无 | 无 | 有 |
+| **MCP 支持** | 原生 | 原生 | 支持 |
+| **适用场景** | 安全敏感环境 | 日常开发 | 全栈开发 |
+
+### 选择建议
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                     工具选择决策树                               │
+├─────────────────────────────────────────────────────────────────┤
+│                                                                 │
+│  需要最高级别的安全隔离？                                        │
+│         │                                                       │
+│         ├─ 是 ──▶ Codex CLI                                    │
+│         │                                                       │
+│         └─ 否                                                   │
+│              │                                                  │
+│              ├─ 需要 Web/桌面界面？                              │
+│              │      │                                           │
+│              │      ├─ 是 ──▶ OpenCode                         │
+│              │      │                                           │
+│              │      └─ 否                                       │
+│              │           │                                      │
+│              │           ├─ 需要最强上下文理解？                 │
+│              │           │      │                               │
+│              │           │      ├─ 是 ──▶ Claude Code          │
+│              │           │      │                               │
+│              │           │      └─ 否 ──▶ Codex CLI            │
+│              │           │                                      │
+│              └─ 默认 ──▶ Claude Code (日常开发)                 │
+│                                                                 │
+└─────────────────────────────────────────────────────────────────┘
 ```
 
 ---

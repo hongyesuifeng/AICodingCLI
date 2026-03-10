@@ -2,13 +2,14 @@
 
 ## 概述
 
-Claude Code 是 Anthropic 官方开发的命令行 AI 编程代理，基于 Claude 4.5/4.6 模型，是目前最先进的终端编程助手之一。
+Claude Code 是 Anthropic 官方开发的命令行 AI 编程代理，基于 Claude 4.5/4.6 模型，是目前最先进的终端编程助手之一，拥有业界最强的上下文理解能力。
 
 | 属性 | 描述 |
 |------|------|
 | **开发者** | Anthropic |
 | **核心定位** | 智能终端编程代理 |
 | **底层模型** | Claude Opus 4.6 / Sonnet 4.6 / Haiku 4.5 |
+| **上下文窗口** | 200K tokens |
 | **运行时** | Node.js 18+ |
 | **包管理** | npm |
 | **开源状态** | **闭源** (有官方 GitHub 仓库用于文档和 issue) |
@@ -47,11 +48,11 @@ Claude Code 是 Anthropic 官方开发的命令行 AI 编程代理，基于 Clau
 
 ### 1. 模型家族
 
-| 模型 | ID | 特点 |
-|------|-----|------|
-| **Opus 4.6** | `claude-opus-4-6` | 最强性能，复杂任务 |
-| **Sonnet 4.6** | `claude-sonnet-4-6` | 平衡性能与速度 |
-| **Haiku 4.5** | `claude-haiku-4-5-20251001` | 快速响应，轻量任务 |
+| 模型 | ID | 特点 | 适用场景 |
+|------|-----|------|----------|
+| **Opus 4.6** | `claude-opus-4-6` | 最强性能，复杂任务 | 架构设计、复杂重构 |
+| **Sonnet 4.6** | `claude-sonnet-4-6` | 平衡性能与速度 | 日常开发 |
+| **Haiku 4.5** | `claude-haiku-4-5-20251001` | 快速响应，轻量任务 | 快速修复、简单任务 |
 
 ### 2. 配置层级系统
 
@@ -70,6 +71,36 @@ Claude Code 是 Anthropic 官方开发的命令行 AI 编程代理，基于 Clau
 - **最大上下文**: 200K tokens
 - **重要提示**: 过多 MCP 工具可能消耗 40%+ 上下文
 - **最佳实践**: "少即是多"，精简配置
+
+### 4. 核心竞争力
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                   Claude Code 核心优势                           │
+├─────────────────────────────────────────────────────────────────┤
+│                                                                 │
+│  1. 上下文理解 ──────────────────────────────────────────────── │
+│     • 200K tokens 超大上下文                                    │
+│     • 理解复杂项目结构                                          │
+│     • 跨文件关联分析                                            │
+│                                                                 │
+│  2. 代码质量 ────────────────────────────────────────────────── │
+│     • 生成高质量代码                                            │
+│     • 遵循最佳实践                                              │
+│     • 自动添加类型和注释                                        │
+│                                                                 │
+│  3. 安全意识 ────────────────────────────────────────────────── │
+│     • 识别安全漏洞                                              │
+│     • 避免常见陷阱                                              │
+│     • 建议安全改进                                              │
+│                                                                 │
+│  4. 工作流集成 ──────────────────────────────────────────────── │
+│     • Git 深度集成                                              │
+│     • MCP 工具生态                                              │
+│     • 钩子自动化                                                │
+│                                                                 │
+└─────────────────────────────────────────────────────────────────┘
+```
 
 ---
 
@@ -506,6 +537,312 @@ claude --permission-mode plan      # 只读规划
 
 ---
 
+## 日常工作实战指南
+
+### 场景一：项目初始化
+
+```bash
+# 创建 CLAUDE.md 项目上下文
+claude "根据项目结构生成 CLAUDE.md 文件"
+
+# 让 AI 理解项目
+claude "分析这个项目的技术栈和架构"
+```
+
+**CLAUDE.md 最佳实践：**
+
+```markdown
+# My Project
+
+## 技术栈
+- Next.js 14 (App Router)
+- TypeScript 5
+- Tailwind CSS
+- Prisma ORM
+- PostgreSQL
+
+## 项目结构
+- app/ - Next.js App Router 页面
+- components/ - React 组件
+- lib/ - 工具函数
+- prisma/ - 数据库 schema
+
+## 开发规范
+- 使用 Server Components 优先
+- API 路由放在 app/api/
+- 使用 Zod 进行验证
+
+## 禁止操作
+- 不要修改 prisma/migrations/
+- 不要直接修改数据库
+- 不要提交 .env 文件
+```
+
+### 场景二：代码审查
+
+```bash
+# 审查最近的变更
+claude "审查最近的 git diff，关注安全和性能"
+
+# 使用自定义技能
+/review --scope staged --focus security
+
+# 审查特定文件
+claude "审查 src/api/auth.ts 的安全性"
+```
+
+### 场景三：重构任务
+
+```bash
+# 大型重构
+claude "把这个 JavaScript 项目迁移到 TypeScript，先制定计划"
+
+# 渐进式迁移
+claude "按照计划，先转换 utils 目录"
+
+# 验证结果
+claude "运行类型检查并修复错误"
+```
+
+### 场景四：调试问题
+
+```bash
+# 分析错误
+claude "运行 npm test 并分析失败的测试"
+
+# 查找 bug
+claude "分析这个 bug：用户登录后 session 丢失"
+
+# 性能问题
+claude "分析这个 API 端点的性能瓶颈"
+```
+
+### 场景五：Git 工作流
+
+```bash
+# 智能提交
+claude "查看变更并生成合适的 commit message"
+
+# 创建 PR
+claude "创建一个 PR，描述这次的变更"
+
+# 解决冲突
+claude "解决当前的合并冲突"
+```
+
+### 场景六：文档生成
+
+```bash
+# API 文档
+claude "为 src/api/ 生成 OpenAPI 文档"
+
+# README
+claude "更新 README.md，添加新功能的说明"
+
+# 代码注释
+claude "为这个复杂函数添加 JSDoc 注释"
+```
+
+---
+
+## 高级技巧
+
+### 1. 上下文优化
+
+```bash
+# 使用 /compact 压缩历史
+/compact
+
+# 只保留关键文件
+claude "只关注 src/auth/ 目录"
+
+# 使用 .claudeignore 排除文件
+```
+
+```
+# .claudeignore
+node_modules/
+dist/
+.git/
+*.lock
+*.min.js
+```
+
+### 2. 多步骤工作流
+
+```bash
+# 定义工作流
+claude "
+执行以下步骤：
+1. 分析当前代码结构
+2. 识别需要重构的模块
+3. 制定重构计划
+4. 等待我确认后执行
+"
+```
+
+### 3. 模型选择策略
+
+```bash
+# 简单任务：Haiku (快速、便宜)
+claude --model claude-haiku-4-5 "修复这个 typo"
+
+# 日常开发：Sonnet (平衡)
+claude "添加一个新 API 端点"
+
+# 复杂任务：Opus (最强)
+claude --model claude-opus-4-6 "重构整个认证系统"
+```
+
+### 4. MCP 工具使用
+
+```bash
+# 配置 GitHub MCP
+claude mcp add github
+
+# 使用 GitHub 功能
+claude "使用 GitHub MCP 查看 issue #123"
+
+# 数据库查询
+claude "使用 postgres MCP 查询用户表结构"
+```
+
+### 5. 钩子自动化
+
+```json
+// 自动格式化
+{
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Write(*.ts)",
+        "command": "eslint --fix {{file_path}} && prettier --write {{file_path}}"
+      },
+      {
+        "matcher": "Write(*.py)",
+        "command": "black {{file_path}} && isort {{file_path}}"
+      }
+    ]
+  }
+}
+```
+
+### 6. 团队协作
+
+```bash
+# 共享 CLAUDE.md
+git add CLAUDE.md .claude/
+
+# 共享技能
+git add .claude/commands/
+
+# 统一配置
+# 在仓库根目录添加 .claude/settings.json
+```
+
+---
+
+## 与 Codex CLI / OpenCode 对比分析
+
+| 特性 | Claude Code | Codex CLI | OpenCode |
+|------|-------------|-----------|----------|
+| **核心优势** | 上下文理解 | 安全沙箱 | 全栈平台 |
+| **底层模型** | Claude 4.5/4.6 | GPT-4o/o1/o3 | 多模型支持 |
+| **上下文窗口** | 200K | 128K | 视模型而定 |
+| **开源状态** | 闭源 | Apache 2.0 | 开源 |
+| **CLI 支持** | ✅ | ✅ | ✅ |
+| **Web 界面** | 无 | 无 | 有 |
+| **桌面应用** | 无 | 无 | Tauri |
+| **多模型支持** | 单一模型 | 单一模型 | 多模型 |
+| **沙箱安全** | 权限系统 | 原生多平台 | 系统沙箱 |
+| **MCP 支持** | 原生 | 原生 | 支持 |
+| **技能系统** | Markdown | Python | TypeScript |
+| **本地模型** | 无 | 无 | Ollama |
+
+### 代码质量对比
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                    代码生成质量对比                              │
+├─────────────────────────────────────────────────────────────────┤
+│                                                                 │
+│  代码正确性     Claude Code > Codex CLI > OpenCode              │
+│  代码安全性     Claude Code ≈ Codex CLI > OpenCode              │
+│  代码风格       Claude Code > OpenCode > Codex CLI              │
+│  上下文理解     Claude Code >>> Codex CLI > OpenCode            │
+│  响应速度       OpenCode > Codex CLI > Claude Code              │
+│  成本效益       OpenCode > Codex CLI > Claude Code              │
+│                                                                 │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+### 选择建议
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                     工具选择决策树                               │
+├─────────────────────────────────────────────────────────────────┤
+│                                                                 │
+│  需要最高代码质量？                                             │
+│         │                                                       │
+│         ├─ 是 ──▶ Claude Code (Opus 4.6)                       │
+│         │                                                       │
+│         └─ 否                                                   │
+│              │                                                  │
+│              ├─ 需要最高安全隔离？                               │
+│              │      │                                           │
+│              │      ├─ 是 ──▶ Codex CLI                         │
+│              │      │                                           │
+│              │      └─ 否                                       │
+│              │           │                                      │
+│              │           ├─ 需要 GUI？                          │
+│              │           │      │                               │
+│              │           │      ├─ 是 ──▶ OpenCode             │
+│              │           │      │                               │
+│              │           │      └─ 否                          │
+│              │           │           │                          │
+│              │           │           ├─ 需要多模型？            │
+│              │           │           │      │                   │
+│              │           │           │      ├─ 是 ──▶ OpenCode │
+│              │           │           │      │                   │
+│              │           │           │      └─ 否 ──▶ Claude   │
+│              │           │           │                   Code  │
+│              │           │                                      │
+│              └─ 默认选择 ──▶ Claude Code (日常开发)             │
+│                                                                 │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+### 使用场景对比
+
+| 场景 | 推荐工具 | 原因 |
+|------|----------|------|
+| 日常开发 | **Claude Code** | 上下文理解最强 |
+| 复杂重构 | **Claude Code Opus** | 代码质量最高 |
+| 安全敏感环境 | Codex CLI | 多平台沙箱隔离 |
+| 需要桌面应用 | OpenCode | 唯一支持 |
+| 需要多模型 | OpenCode | 原生多模型 |
+| 成本敏感 | OpenCode + Haiku | 可选便宜模型 |
+| 本地/离线 | OpenCode + Ollama | 支持本地模型 |
+
+### 组合使用策略
+
+```bash
+# 策略 1：主次搭配
+# Claude Code 为主 (代码质量)
+# OpenCode 为辅 (GUI + 多模型)
+
+# 策略 2：场景切换
+# 复杂任务 → Claude Code Opus
+# 简单任务 → Claude Code Haiku / OpenCode
+
+# 策略 3：安全优先
+# 敏感代码 → Codex CLI (沙箱)
+# 普通代码 → Claude Code
+```
+
+---
+
 ## 最佳实践
 
 ### 1. 配置精简化
@@ -585,19 +922,24 @@ commands/
 }
 ```
 
----
+### 5. 权限管理
 
-## 与竞品对比
-
-| 特性 | Claude Code | OpenAI Codex CLI | Gemini CLI |
-|------|-------------|------------------|------------|
-| **开源** | 否 | 是 (Apache 2.0) | 是 (Apache 2.0) |
-| **模型** | Claude 4.5/4.6 | GPT-4o | Gemini 2.0 |
-| **上下文窗口** | 200K | 128K | 1M |
-| **MCP 支持** | 原生 | 原生 | 原生 |
-| **技能系统** | 有 | 有 | 有 |
-| **沙箱安全** | 权限系统 | 多平台沙箱 | 沙箱 |
-| **Agent SDK** | 有 | 有 | 有 |
+```json
+// 推荐：最小权限原则
+{
+  "permissions": {
+    "allow": [
+      "Read",
+      "Bash(npm run:*)",
+      "Bash(git:*)"
+    ],
+    "deny": [
+      "Bash(rm -rf:*)",
+      "Bash(sudo:*)"
+    ]
+  }
+}
+```
 
 ---
 
@@ -633,3 +975,5 @@ commands/
 - [Claude API 文档](https://docs.anthropic.com/)
 - [MCP 协议规范](https://modelcontextprotocol.io/)
 - [Anthropic 开发者平台](https://www.anthropic.com/engineering)
+- [Claude Code Settings](https://code.claude.com/docs/en/settings)
+- [Claude Code Skills](https://code.claude.com/docs/en/skills)
