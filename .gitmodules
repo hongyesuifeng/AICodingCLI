@@ -7,3 +7,9 @@
 [submodule "opencode"]
 	path = opencode
 	url = https://github.com/anomalyco/opencode.git
+[submodule "aider"]
+	path = aider
+	url = https://github.com/Aider-AI/aider.git
+[submodule "goose"]
+	path = goose
+	url = https://github.com/block/goose.git

@@ -1,6 +1,6 @@
 # AI 编程工具技术文档
 
-本文档详细介绍三个主流 AI 编程工具的技术架构、实现原理、最佳实践和学习路线。
+本文档详细介绍五个主流 AI 编程工具的技术架构、实现原理、最佳实践和学习路线。
 
 ## 目录
 
@@ -8,7 +8,9 @@
 2. [OpenAI Codex CLI](#codex-cli)
 3. [Google Gemini CLI](#gemini-cli)
 4. [OpenCode](#opencode)
-5. [学习路线](#学习路线)
+5. [Aider](#aider)
+6. [Goose](#goose)
+7. [学习路线](#学习路线)
 
 ## 详细文档
 
@@ -19,6 +21,8 @@
 | [Codex CLI](./codex-cli.md) | `docs/codex-cli.md` | Rust 安全沙箱、Python 技能系统 |
 | [Gemini CLI](./gemini-cli.md) | `docs/gemini-cli.md` | TOML 命令模板、多模型支持、OpenTelemetry |
 | [OpenCode](./opencode.md) | `docs/opencode.md` | Bun 运行时、SolidJS、Tauri 桌面应用 |
+| [Aider](./aider.md) | `docs/aider.md` | Python 终端工具、代码地图、语音输入 |
+| [Goose](./goose.md) | `docs/goose.md` | Rust 代理框架、Electron 桌面、MCP 扩展 |
 
 ---
 
@@ -31,39 +35,45 @@
 | Codex CLI | OpenAI | 安全优先的 AI 编程代理 | Rust + TypeScript |
 | Gemini CLI | Google | 可扩展的多模型 AI 助手 | TypeScript |
 | OpenCode | Anomaly | 现代化全栈 AI 开发平台 | TypeScript (Bun) |
+| Aider | Aider-AI | 终端 AI 结对编程工具 | Python |
+| Goose | Block | 本地可扩展的自动化 AI 代理 | Rust |
 
 ### 技术栈对比
 
 ```
-┌─────────────────────────────────────────────────────────────────────────┐
-│                          技术栈层次对比                                  │
-├─────────────┬─────────────────┬─────────────────┬───────────────────────┤
-│    层级     │    Codex CLI    │    Gemini CLI   │      OpenCode         │
-├─────────────┼─────────────────┼─────────────────┼───────────────────────┤
-│ 运行时      │ Node.js 16+     │ Node.js 20+     │ Bun                   │
-│ 核心语言    │ Rust            │ TypeScript      │ TypeScript            │
-│ 包管理      │ Cargo + npm     │ pnpm            │ Bun + Turbo           │
-│ UI 框架     │ Ratatui (TUI)   │ Ink + React     │ SolidJS + Tauri       │
-│ 数据存储    │ 文件系统        │ 文件系统        │ SQLite + Drizzle      │
-│ AI 集成     │ OpenAI API      │ Google Gemini   │ 多模型 (AI SDK)       │
-│ 沙箱安全    │ 原生实现        │ 有限支持        │ 系统沙箱              │
-│ 架构模式    │ Monorepo        │ Monorepo        │ Monorepo              │
-└─────────────┴─────────────────┴─────────────────┴───────────────────────┘
+┌─────────────┬─────────────────┬─────────────────┬─────────────────┬─────────────────┬─────────────────┐
+│    层级     │    Codex CLI    │    Gemini CLI   │    OpenCode     │      Aider      │      Goose      │
+├─────────────┼─────────────────┼─────────────────┼─────────────────┼─────────────────┼─────────────────┤
+│ 运行时      │ Node.js 16+     │ Node.js 20+     │ Bun             │ Python 3.10+    │ Rust + Node.js  │
+│ 核心语言    │ Rust            │ TypeScript      │ TypeScript      │ Python          │ Rust            │
+│ 包管理      │ Cargo + npm     │ pnpm            │ Bun + Turbo     │ pip / uv        │ Cargo + npm     │
+│ UI 框架     │ Ratatui (TUI)   │ Ink + React     │ SolidJS + Tauri │ Rich + Prompt   │ Electron+React  │
+│ 数据存储    │ 文件系统        │ 文件系统        │ SQLite+Drizzle  │ 文件系统+Cache  │ 文件系统        │
+│ AI 集成     │ OpenAI API      │ Google Gemini   │ 多模型(AI SDK)  │ LiteLLM(多模型) │ 多Provider      │
+│ 沙箱安全    │ 原生实现        │ 有限支持        │ 系统沙箱        │ 无              │ 有限            │
+│ 架构模式    │ Monorepo        │ Monorepo        │ Monorepo        │ 单包            │ Workspace       │
+└─────────────┴─────────────────┴─────────────────┴─────────────────┴─────────────────┴─────────────────┘
 ```
 
 ### 核心特性对比
 
-| 特性 | Codex CLI | Gemini CLI | OpenCode |
-|------|:---------:|:----------:|:--------:|
-| CLI 支持 | ✅ | ✅ | ✅ |
-| Web 界面 | ❌ | ✅ (DevTools) | ✅ |
-| 桌面应用 | ❌ | ❌ | ✅ (Tauri) |
-| 安全沙箱 | ✅ 原生 | ⚠️ 有限 | ⚠️ 系统 |
-| 多模型支持 | ❌ | ✅ | ✅ |
-| MCP 协议 | ✅ | ✅ | ✅ |
-| 插件系统 | ✅ Skills | ✅ Commands | ✅ Plugins |
-| 云服务集成 | ❌ | ❌ | ✅ |
-| 开源 | ✅ | ✅ | ✅ |
+| 特性 | Codex CLI | Gemini CLI | OpenCode | Aider | Goose |
+|------|:---------:|:----------:|:--------:|:-----:|:-----:|
+| CLI 支持 | ✅ | ✅ | ✅ | ✅ | ✅ |
+| Web 界面 | ❌ | ✅ (DevTools) | ✅ | ❌ | ❌ |
+| 桌面应用 | ❌ | ❌ | ✅ (Tauri) | ❌ | ✅ Electron |
+| 安全沙箱 | ✅ 原生 | ⚠️ 有限 | ⚠️ 系统 | ❌ | ⚠️ 有限 |
+| 多模型支持 | ❌ | ✅ | ✅ | ✅ | ✅ |
+| MCP 协议 | ✅ | ✅ | ✅ | ❌ | ✅ |
+| 插件系统 | ✅ Skills | ✅ Commands | ✅ Plugins | ❌ | ✅ MCP扩展 |
+| 代码地图 | ❌ | ❌ | ❌ | ✅ | ❌ |
+| 语音输入 | ❌ | ❌ | ❌ | ✅ | ❌ |
+| Git 深度集成 | ✅ | ✅ | ✅ | ✅ 深度 | ✅ |
+| 自动测试 | ❌ | ❌ | ❌ | ✅ | ❌ |
+| 本地模型 | ❌ | ❌ | ❌ | ✅ | ✅ Ollama |
+| 消息平台 | ❌ | ❌ | ❌ | ❌ | ✅ Telegram |
+| 云服务集成 | ❌ | ❌ | ✅ | ❌ | ❌ |
+| 开源 | ✅ | ✅ | ✅ | ✅ | ✅ |
 
 ---
 
@@ -768,6 +778,119 @@ opencode logs                   # 查看日志
 
 ---
 
+## Aider
+
+### 技术架构
+
+Aider 是一个开源的终端 AI 结对编程工具，采用纯 Python 实现，支持多种 LLM 和 100+ 编程语言。
+
+```
+┌────────────────────────────────────────────────────────────────────┐
+│                        Aider 系统架构                               │
+├────────────────────────────────────────────────────────────────────┤
+│                                                                    │
+│  ┌─────────────────────────────────────────────────────────────┐  │
+│  │                      CLI 层 (main.py)                        │  │
+│  │  参数解析 │ 配置加载 │ Git 设置 │ 模型选择                   │  │
+│  └──────────────────────────┬──────────────────────────────────┘  │
+│                              │                                     │
+│  ┌──────────────────────────▼──────────────────────────────────┐  │
+│  │                    Coder 核心层                              │  │
+│  │  ┌─────────────┐  ┌─────────────┐  ┌─────────────────────┐  │  │
+│  │  │ BaseCoder   │  │ EditBlock   │  │ UDiffCoder          │  │  │
+│  │  │ (基类)      │  │ Coder       │  │ (Unified Diff)      │  │  │
+│  │  └─────────────┘  └─────────────┘  └─────────────────────┘  │  │
+│  │  ┌─────────────┐  ┌─────────────┐  ┌─────────────────────┐  │  │
+│  │  │ WholeFile   │  │ PatchCoder  │  │ ArchitectCoder      │  │  │
+│  │  │ Coder       │  │ (git patch) │  │ (架构设计)          │  │  │
+│  │  └─────────────┘  └─────────────┘  └─────────────────────┘  │  │
+│  └──────────────────────────┬──────────────────────────────────┘  │
+│                              │                                     │
+│  ┌──────────────────────────▼──────────────────────────────────┐  │
+│  │                    服务层                                    │  │
+│  │  ┌─────────────┐  ┌─────────────┐  ┌─────────────────────┐  │  │
+│  │  │  RepoMap    │  │   GitRepo   │  │     Linter          │  │  │
+│  │  │ (代码地图)  │  │  (版本控制) │  │   (代码检查)        │  │  │
+│  │  └─────────────┘  └─────────────┘  └─────────────────────┘  │  │
+│  └─────────────────────────────────────────────────────────────┘  │
+│                                                                    │
+└────────────────────────────────────────────────────────────────────┘
+```
+
+### 核心技术原理
+
+#### 1. RepoMap (代码地图)
+
+使用 Tree-sitter 解析代码库，生成代码结构概览：
+
+```python
+class RepoMap:
+    """使用 Tree-sitter 解析代码，提取符号定义和引用"""
+
+    def get_repo_map(self, chat_files, other_files):
+        # 使用 Tree-sitter 提取标签
+        tags = self.get_tags(other_files)
+
+        # 按重要性排序
+        ranked_tags = self.rank_tags(tags)
+
+        # 生成地图字符串
+        return self.render_map(ranked_tags)
+```
+
+#### 2. 多种编辑格式
+
+```python
+EDIT_FORMATS = {
+    'whole': 'WholeFileCoder',        # 整文件替换
+    'diff': 'DiffCoder',              # 标准差异
+    'udiff': 'UDiffCoder',            # Unified diff
+    'editblock': 'EditBlockCoder',    # 搜索替换块
+    'patch': 'PatchCoder',            # Git Patch 格式
+    'architect': 'ArchitectCoder',    # 架构设计模式
+}
+```
+
+#### 3. Git 深度集成
+
+- 自动提交更改
+- AI 生成提交消息
+- 撤销/恢复功能
+- 差异查看
+
+### 命令参考
+
+```bash
+# 基础命令
+aider                          # 交互模式
+aider file1.py file2.py        # 指定文件
+
+# 模型选择
+aider --model sonnet           # Claude Sonnet (推荐)
+aider --model deepseek         # DeepSeek
+aider --model 4o               # GPT-4o
+
+# 会话内命令
+/add file.py                   # 添加文件
+/drop file.py                  # 移除文件
+/diff                          # 显示差异
+/undo                          # 撤销更改
+/map                           # 显示代码地图
+/voice                         # 语音输入
+```
+
+### Aider 独有特性
+
+| 特性 | 说明 |
+|------|------|
+| **代码地图** | 使用 Tree-sitter 生成代码结构概览，帮助 LLM 理解大型项目 |
+| **语音输入** | 支持 OpenAI Whisper API 语音转文字 |
+| **文件监控** | 监控文件变化，自动响应代码注释中的指令 |
+| **自动测试** | 更改后自动运行测试，修复失败 |
+| **多编辑格式** | whole, diff, udiff, editblock, patch, architect |
+
+---
+
 ## 学习路线
 
 ### 第一阶段：基础入门 (2-4 周)
@@ -778,9 +901,9 @@ opencode logs                   # 查看日志
 ┌─────────────────────────────────────────────────────────────────┐
 │                    语言学习优先级                                │
 ├─────────────────┬───────────────────────────────────────────────┤
-│  TypeScript     │ 必修 - 所有三个工具都使用                     │
+│  TypeScript     │ 必修 - Codex/Gemini/OpenCode 使用             │
 │  Rust           │ 进阶 - Codex CLI 核心，Tauri 桌面应用         │
-│  Python         │ 可选 - Codex 技能系统                         │
+│  Python         │ 必修 - Aider 核心，Codex 技能系统             │
 └─────────────────┴───────────────────────────────────────────────┘
 ```
 
@@ -1077,6 +1200,20 @@ OpenCode:
 2. packages/console/core/        → 后端逻辑
 3. packages/console/app/         → Web 前端
 4. packages/desktop/src-tauri/   → 桌面应用
+
+Aider:
+1. aider/main.py                 → 入口点，参数解析
+2. aider/coders/base_coder.py    → 核心 Coder 类
+3. aider/repomap.py              → 代码地图实现
+4. aider/models.py               → 模型配置
+5. aider/commands.py             → 命令系统
+
+Goose:
+1. crates/goose-cli/src/main.rs  → CLI 入口点
+2. crates/goose/src/agents/      → Agent 核心逻辑
+3. crates/goose/src/providers/   → 多模型 Provider
+4. crates/goose-mcp/src/         → MCP 扩展实现
+5. ui/desktop/src/App.tsx        → 桌面应用
 ```
 
 ---
@@ -1187,15 +1324,22 @@ for await (const chunk of streamChat('Hello')) {
 - [OpenAI Codex CLI](https://github.com/openai/codex)
 - [Google Gemini CLI](https://github.com/google/gemini-cli)
 - [OpenCode](https://github.com/sst/opencode)
+- [Aider](https://aider.chat/) / [GitHub](https://github.com/Aider-AI/aider)
+- [Goose](https://block.github.io/goose/) / [GitHub](https://github.com/block/goose)
 
 ### 相关技术
 - [Model Context Protocol](https://modelcontextprotocol.io/)
 - [Bun Runtime](https://bun.sh)
 - [Tauri Desktop](https://tauri.app)
+- [Electron](https://www.electronjs.org/)
 - [SolidJS](https://www.solidjs.com/)
 - [Drizzle ORM](https://orm.drizzle.team/)
+- [LiteLLM](https://github.com/BerriAI/litellm)
+- [Tree-sitter](https://tree-sitter.github.io/)
+- [Ollama](https://ollama.ai/)
 
 ### 学习课程
 - [TypeScript 深入浅出](https://www.typescriptlang.org/docs/handbook/)
 - [Rust 程序设计语言](https://doc.rust-lang.org/book/)
+- [Python 官方教程](https://docs.python.org/zh-cn/3/tutorial/)
 - [AI Engineering 课程](https://www.deeplearning.ai/)
