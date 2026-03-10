@@ -26,7 +26,8 @@
       "Bash(git commit -m \"$\\(cat <<'EOF'\n添加 Aider 和 Goose 子模块及技术文档\n\n- 添加 Aider 子模块 \\(Python AI 结对编程工具\\)\n- 添加 Goose 子模块 \\(Block 开发的 Rust AI 代理框架\\)\n- 创建 Aider 技术文档 \\(docs/aider.md\\)\n- 创建 Goose 技术文档 \\(docs/goose.md\\)\n- 更新总览文档，加入两个新工具的对比分析\n- 更新 .gitmodules 和 .gitignore\n\nCo-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>\nEOF\n\\)\")",
       "Bash(git push origin main)",
       "Bash(git add codex gemini-cli opencode && git status)",
-      "Bash(git commit -m \"$\\(cat <<'EOF'\n更新子模块引用\n\n- codex: 更新到最新提交\n- gemini-cli: 更新到最新提交  \n- opencode: 更新到最新提交\n\nCo-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>\nEOF\n\\)\")"
+      "Bash(git commit -m \"$\\(cat <<'EOF'\n更新子模块引用\n\n- codex: 更新到最新提交\n- gemini-cli: 更新到最新提交  \n- opencode: 更新到最新提交\n\nCo-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>\nEOF\n\\)\")",
+      "Bash(git add docs/ai-coding-tools-overview.md docs/claude-code.md docs/codex-cli.md docs/opencode.md && git commit -m \"$\\(cat <<'EOF'\n更新核心工具技术文档，重点优化 Codex CLI、OpenCode 和 Claude Code\n\n- 新增 Claude Code 完整技术文档 \\(979 行\\)\n- 增强 Codex CLI 文档：安全沙箱详解、实战场景\n- 增强 OpenCode 文档：多客户端工作流、多模型策略\n- 更新总览文档：三大核心工具对比矩阵、选择决策树\n\nCo-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>\nEOF\n\\)\")"
     ]
   }
 }
