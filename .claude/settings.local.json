@@ -1,0 +1,32 @@
+{
+  "permissions": {
+    "allow": [
+      "WebSearch",
+      "Bash(git submodule add https://github.com/Aider-AI/aider.git aider)",
+      "Bash(git submodule add https://github.com/block/goose.git goose)",
+      "Bash(git fetch --dry-run 2>&1 || true)",
+      "Bash(git pull origin main)",
+      "Bash(ls -la /mnt/c/Users/qq691/Desktop/AICodingCLI/docs/ && wc -l /mnt/c/Users/qq691/Desktop/AICodingCLI/docs/*.md)",
+      "Bash(git submodule status)",
+      "Bash(rm -rf goose && git submodule add --force https://github.com/block/goose.git goose)",
+      "Bash(git submodule absorbgitdirs && git submodule status)",
+      "Bash(git pull)",
+      "Bash(git stash && git pull && git stash pop)",
+      "Bash(git stash pop && git stash -u && git pull && git stash pop)",
+      "Bash(git add .gitmodules .gitignore README.md docs/ai-coding-tools-overview.md docs/aider.md docs/goose.md)",
+      "Bash(git add aider goose)",
+      "Bash(git rm --cached aider goose)",
+      "Bash(git rm --cached -f aider goose)",
+      "Bash(git add .gitmodules && git status)",
+      "Bash(git submodule absorbgitdirs 2>/dev/null || true)",
+      "Bash(git config --file .git/config --get-regexp submodule)",
+      "Bash(git submodule sync)",
+      "Bash(git submodule add --force https://github.com/Aider-AI/aider.git aider)",
+      "Bash(git submodule add --force https://github.com/block/goose.git goose)",
+      "Bash(git commit -m \"$\\(cat <<'EOF'\n添加 Aider 和 Goose 子模块及技术文档\n\n- 添加 Aider 子模块 \\(Python AI 结对编程工具\\)\n- 添加 Goose 子模块 \\(Block 开发的 Rust AI 代理框架\\)\n- 创建 Aider 技术文档 \\(docs/aider.md\\)\n- 创建 Goose 技术文档 \\(docs/goose.md\\)\n- 更新总览文档，加入两个新工具的对比分析\n- 更新 .gitmodules 和 .gitignore\n\nCo-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>\nEOF\n\\)\")",
+      "Bash(git push origin main)",
+      "Bash(git add codex gemini-cli opencode && git status)",
+      "Bash(git commit -m \"$\\(cat <<'EOF'\n更新子模块引用\n\n- codex: 更新到最新提交\n- gemini-cli: 更新到最新提交  \n- opencode: 更新到最新提交\n\nCo-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>\nEOF\n\\)\")"
+    ]
+  }
+}

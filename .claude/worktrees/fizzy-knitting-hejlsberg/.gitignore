@@ -1,0 +1,16 @@
+# 临时文件
+*.tmp
+*.temp
+*_temp
+
+# IDE
+.idea/
+.vscode/
+*.swp
+
+# OS
+.DS_Store
+Thumbs.db
+
+# 学习笔记（可选）
+notes/

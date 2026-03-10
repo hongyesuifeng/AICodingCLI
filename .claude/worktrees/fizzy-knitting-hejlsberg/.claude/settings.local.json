@@ -1,0 +1,16 @@
+{
+  "permissions": {
+    "allow": [
+      "WebSearch",
+      "Bash(git submodule add https://github.com/Aider-AI/aider.git aider)",
+      "Bash(git submodule add https://github.com/block/goose.git goose)",
+      "Bash(git fetch --dry-run 2>&1 || true)",
+      "Bash(git pull origin main)",
+      "Bash(find /mnt/c/Users/qq691/Desktop/AICodingCLI/aider -name \"*.py\" -path \"*aider/aider*\" | xargs basename -a | sort | uniq)",
+      "Bash(git config user.name \"qq691\" && git config user.email \"qq691@users.noreply.github.com\")",
+      "Bash(git add docs/learning-roadmap.md && git commit -m \"$\\(cat <<'EOF'\n添加 AI 编程 CLI 开发学习路线文档\n\n- 详细的学习阶段规划（基础入门 → 核心原理 → 源码研读 → 实战开发）\n- 每个阶段指定具体要阅读的源码文件路径\n- 包含三个实战项目：Mini AI CLI、MCP 服务器、完整 AI 编程 CLI\n- 提供学习检验清单和常见问题解答\n\nCo-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>\nEOF\n\\)\")",
+      "Bash(git push)",
+      "Bash(git push origin HEAD:main)"
+    ]
+  }
+}

@@ -1,0 +1,9 @@
+[submodule "codex"]
+	path = codex
+	url = https://github.com/openai/codex.git
+[submodule "gemini-cli"]
+	path = gemini-cli
+	url = https://github.com/google-gemini/gemini-cli.git
+[submodule "opencode"]
+	path = opencode
+	url = https://github.com/anomalyco/opencode.git
