@@ -10,6 +10,31 @@
 pnpm add @anthropic-ai/sdk
 ```
 
+**命令详解：**
+
+| 命令部分 | 作用 | 详细解释 |
+|---------|------|----------|
+| `pnpm` | 包管理器 | 高效的 Node.js 包管理器 |
+| `add` | 添加依赖 | 将包添加到 `dependencies` |
+| `@anthropic-ai/sdk` | Anthropic 官方 SDK | Anthropic 官方维护的 TypeScript SDK，支持所有 Claude 模型 |
+
+**@anthropic-ai/sdk 包提供了什么？**
+- `Anthropic` 类 - 主客户端，用于创建 API 连接
+- 完整的 TypeScript 类型定义
+- 流式响应支持
+- 工具调用（Tool Use）支持
+- 多模态（Vision）支持
+
+**OpenAI SDK vs Anthropic SDK 对比：**
+
+| 特性 | OpenAI SDK | Anthropic SDK |
+|------|-----------|---------------|
+| 系统消息位置 | messages 数组中 | 单独的 `system` 参数 |
+| 最大 token 参数 | `max_tokens` | `max_tokens`（必填） |
+| 流式事件 | `delta.content` | `content_block_delta` |
+| 工具调用 | `tool_calls` | `tool_use` content block |
+| 视觉输入 | `image_url` | `image` source |
+
 ## 2. Anthropic Provider 实现
 
 ```typescript

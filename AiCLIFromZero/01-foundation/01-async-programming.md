@@ -64,6 +64,50 @@ fetchUser(1)
   .catch(err => console.error('Error:', err));
 ```
 
+**Promise 构造详解：**
+
+```typescript
+new Promise((resolve, reject) => {
+  // resolve(value) - 成功时调用，value 会传给 .then()
+  // reject(error)  - 失败时调用，error 会传给 .catch()
+})
+```
+
+| 参数 | 类型 | 作用 | 调用后的效果 |
+|------|------|------|-------------|
+| `resolve` | `(value?) => void` | 标记 Promise 成功 | 后续 `.then()` 被调用 |
+| `reject` | `(reason?) => void` | 标记 Promise 失败 | 后续 `.catch()` 被调用 |
+
+**Promise 三种状态：**
+
+| 状态 | 含义 | 特点 |
+|------|------|------|
+| `pending` | 进行中 | 初始状态 |
+| `fulfilled` | 已成功 | 调用 resolve() 后，不可变 |
+| `rejected` | 已失败 | 调用 reject() 后，不可变 |
+
+**Promise 链式调用流程图：**
+```
+fetchUser(1)                     // 返回 Promise<User>
+    │
+    ▼
+.then(user => {...})             // 接收 User，返回 Promise<Post[]>
+    │
+    ▼
+.then(posts => {...})            // 接收 Post[]
+    │
+    ▼ (如果前面任何一步出错)
+.catch(err => {...})             // 捕获错误
+```
+
+**.then() / .catch() / .finally() 详解：**
+
+| 方法 | 参数 | 返回值 | 何时调用 |
+|------|------|--------|----------|
+| `.then(onFulfilled, onRejected?)` | 成功回调, 失败回调(可选) | 新的 Promise | Promise 成功时 |
+| `.catch(onRejected)` | 失败回调 | 新的 Promise | Promise 失败时 |
+| `.finally(onFinally)` | 完成回调 | 新的 Promise | 无论成功失败都调用 |
+
 ### Promise 静态方法
 
 ```typescript
@@ -113,6 +157,35 @@ try {
 } catch (err) {
   console.error('Request timed out');
 }
+```
+
+**Promise 静态方法对比：**
+
+| 方法 | 行为 | 失败时 | 返回值类型 |
+|------|------|--------|-----------|
+| `Promise.all()` | 并行执行所有 | 一个失败则整体失败 | `Promise<T[]>` |
+| `Promise.allSettled()` | 并行执行所有 | 等待所有完成（无论成败） | `Promise<PromiseSettledResult<T>[]>` |
+| `Promise.race()` | 返回最快的 | 第一个失败则失败 | `Promise<T>` |
+| `Promise.any()` | 返回第一个成功 | 全部失败才失败 | `Promise<T>` |
+
+**Promise.allSettled 返回值结构：**
+```typescript
+// 成功的结果
+{ status: 'fulfilled', value: T }
+
+// 失败的结果
+{ status: 'rejected', reason: any }
+```
+
+**超时实现原理图：**
+```
+Promise.race([
+  fetchUser(1),      ←── API 请求
+  delay(5000)        ←── 5秒定时器
+])
+
+情况1: API 在 3 秒内返回 → 返回用户数据
+情况2: 5 秒后 API 还没返回 → delay 先完成 → 抛出 Timeout 错误
 ```
 
 ## 2. async/await

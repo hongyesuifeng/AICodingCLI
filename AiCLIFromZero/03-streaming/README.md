@@ -80,6 +80,55 @@ async function streamChat() {
 streamChat();
 ```
 
+**代码详解：**
+
+```typescript
+const provider = new OpenAIProvider({
+  apiKey: process.env.OPENAI_API_KEY!,  // API 密钥
+  model: 'gpt-4o',                      // 使用的模型
+});
+```
+- 配置 Provider 实例，API Key 从环境变量读取
+- `!` 是 TypeScript 非空断言
+
+```typescript
+const messages = [
+  { role: 'user' as const, content: '讲一个短故事' }
+];
+```
+- `as const` 确保 role 是字面量类型 `'user'` 而非 `string`
+
+```typescript
+process.stdout.write('AI: ');
+```
+- `process.stdout.write()` 直接向标准输出写入，**不自动换行**
+- 与 `console.log()` 的区别：`console.log` 会在末尾加 `\n`
+
+```typescript
+for await (const chunk of provider.stream(messages)) {
+  process.stdout.write(chunk.delta);
+}
+```
+
+**for await...of 详解：**
+
+| 部分 | 作用 | 详细解释 |
+|------|------|----------|
+| `for await` | 异步迭代关键字 | 用于遍历异步可迭代对象（AsyncIterable） |
+| `const chunk` | 当前迭代值 | 每次循环接收一个流式数据块 |
+| `of provider.stream()` | 异步迭代源 | `stream()` 方法返回一个 AsyncGenerator |
+
+**为什么用 `process.stdout.write` 而不是 `console.log`？**
+- `console.log()` 会自动添加换行符
+- 流式输出需要文本连续显示，不能每次都换行
+- `process.stdout.write()` 精确控制输出内容
+
+**流式输出效果：**
+```
+AI: 从 前 有 一 个 小 村 庄 ...
+    ↑ 文本逐字/逐词出现，而不是等全部生成完才显示
+```
+
 ## 核心类型
 
 ```typescript
