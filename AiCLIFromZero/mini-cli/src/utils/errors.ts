@@ -54,24 +54,28 @@ export function parseAPIError(
   provider: string,
   error: any
 ): ProviderError {
-  if (error.response?.status === 401) {
+  const status = error.status ?? error.response?.status;
+  const headers = error.headers ?? error.response?.headers;
+  const responseError = error.error ?? error.response?.data?.error;
+
+  if (status === 401) {
     return new InvalidAPIKeyError(provider);
   }
 
-  if (error.response?.status === 429) {
-    const retryAfter = error.response.headers?.['retry-after'];
+  if (status === 429) {
+    const retryAfter = headers?.['retry-after'];
     return new RateLimitError(
       provider,
       retryAfter ? parseInt(retryAfter) : undefined
     );
   }
 
-  if (error.response?.status === 404) {
-    return new ModelNotFoundError(provider, error.config?.data?.model || 'unknown');
+  if (status === 404) {
+    return new ModelNotFoundError(provider, error.config?.data?.model || error.body?.model || 'unknown');
   }
 
-  if (error.response?.status === 400) {
-    const message = error.response?.data?.error?.message || 'Bad request';
+  if (status === 400) {
+    const message = responseError?.message || error.message || 'Bad request';
     if (message.includes('context length')) {
       return new ContextLengthError(provider, 0, 0);
     }

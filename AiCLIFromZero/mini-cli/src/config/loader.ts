@@ -14,6 +14,7 @@ export {
 export interface AppConfig {
   ai: {
     minimaxApiKey?: string;
+    openaiApiKey?: string;
     defaultModel?: string;
   };
 }
@@ -23,6 +24,7 @@ export function loadConfig(): AppConfig {
   return {
     ai: {
       minimaxApiKey: process.env.MINIMAX_API_KEY,
+      openaiApiKey: process.env.OPENAI_API_KEY,
       defaultModel: process.env.DEFAULT_MODEL || 'MiniMax-M2.5',
     },
   };
@@ -32,6 +34,7 @@ export function loadConfig(): AppConfig {
 export function getApiKey(provider: string): string {
   const envMap: Record<string, string> = {
     minimax: 'MINIMAX_API_KEY',
+    openai: 'OPENAI_API_KEY',
   };
 
   const key = process.env[envMap[provider]];

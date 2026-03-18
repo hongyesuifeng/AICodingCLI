@@ -37,13 +37,6 @@ export interface SystemMessage {
 // 联合类型
 export type Message = UserMessage | AssistantMessage | SystemMessage;
 
-// 多模态内容
-export interface ContentPart {
-  type: 'text' | 'image';
-  text?: string;
-  imageUrl?: { url: string };
-}
-
 // 工具调用
 export interface ToolCall {
   id: string;

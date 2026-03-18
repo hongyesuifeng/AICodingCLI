@@ -8,7 +8,11 @@
     "chat": "tsx src/index.ts chat",
     "ask": "tsx src/index.ts ask",
     "models": "tsx src/index.ts models",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "build": "tsc",
+    "typecheck:src": "tsc --noEmit",
+    "typecheck:test": "tsc --noEmit -p tsconfig.test.json",
+    "typecheck": "pnpm run typecheck:src && pnpm run typecheck:test",
+    "test": "node --import tsx --test test/*.test.ts"
   },
   "bin": {
     "mini-cli": "./dist/index.js"
@@ -22,6 +26,7 @@
     "@types/node": "^25.4.0",
     "chalk": "^5.6.2",
     "commander": "^14.0.3",
+    "openai": "^6.32.0",
     "tsx": "^4.21.0",
     "typescript": "^5.9.3"
   }

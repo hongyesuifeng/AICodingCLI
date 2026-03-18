@@ -15,6 +15,51 @@ export interface ModelCapabilities {
 
 // 预定义模型
 export const MODELS: Record<string, ModelCapabilities> = {
+  // OpenAI 模型
+  'gpt-4o': {
+    provider: 'openai',
+    contextWindow: 128000,
+    maxOutputTokens: 16384,
+    supportsVision: true,
+    supportsTools: true,
+    supportsStreaming: true,
+    supportsThinking: false,
+    inputPrice: 2.5,
+    outputPrice: 10,
+  },
+  'gpt-4o-mini': {
+    provider: 'openai',
+    contextWindow: 128000,
+    maxOutputTokens: 16384,
+    supportsVision: true,
+    supportsTools: true,
+    supportsStreaming: true,
+    supportsThinking: false,
+    inputPrice: 0.15,
+    outputPrice: 0.6,
+  },
+  'gpt-4.1': {
+    provider: 'openai',
+    contextWindow: 1047576,
+    maxOutputTokens: 32768,
+    supportsVision: true,
+    supportsTools: true,
+    supportsStreaming: true,
+    supportsThinking: false,
+    inputPrice: 2,
+    outputPrice: 8,
+  },
+  'gpt-4.1-mini': {
+    provider: 'openai',
+    contextWindow: 1047576,
+    maxOutputTokens: 32768,
+    supportsVision: true,
+    supportsTools: true,
+    supportsStreaming: true,
+    supportsThinking: false,
+    inputPrice: 0.4,
+    outputPrice: 1.6,
+  },
   // MiniMax 模型
   'MiniMax-M2.5': {
     provider: 'minimax',
@@ -75,6 +120,12 @@ export const MODELS: Record<string, ModelCapabilities> = {
 
 // 模型别名
 export const MODEL_ALIASES: Record<string, string> = {
+  // OpenAI 别名
+  '4o': 'gpt-4o',
+  '4o-mini': 'gpt-4o-mini',
+  '4.1': 'gpt-4.1',
+  '4.1-mini': 'gpt-4.1-mini',
+  'openai': 'gpt-4o',
   // MiniMax 别名
   'm25': 'MiniMax-M2.5',
   'm25-fast': 'MiniMax-M2.5-highspeed',

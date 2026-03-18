@@ -1,26 +1,44 @@
 // src/index.ts
 import { Command } from 'commander';
 import chalk from 'chalk';
+import process from 'node:process';
 import { MiniMaxProvider } from './providers/minimax.js';
+import { OpenAIProvider } from './providers/openai.js';
 import { type AIProvider, type ProviderConfig } from './providers/base-provider.js';
-import { type Message, type StreamChunk } from './types/message.js';
+import { type Message } from './types/message.js';
 import {
   resolveModel,
-  getModelCapabilities,
-  listModels,
   MODEL_ALIASES,
   MODELS,
   loadConfig,
   getApiKey,
 } from './config/loader.js';
 
+interface ModelOption {
+  model: string;
+}
+
 // 创建 Provider 工厂函数
 function createProvider(model: string, apiKey?: string): AIProvider {
   const resolvedModel = resolveModel(model);
+  const modelConfig = MODELS[resolvedModel];
 
-  // 检查是否是 MiniMax 模型
-  if (resolvedModel.includes('MiniMax') || resolvedModel.includes('minimax')) {
-    const capabilities = getModelCapabilities(resolvedModel);
+  if (!modelConfig) {
+    throw new Error(`Unknown model: ${model}`);
+  }
+
+  if (modelConfig.provider === 'openai') {
+    const key = apiKey || getApiKey('openai');
+
+    const config: ProviderConfig = {
+      apiKey: key,
+      model: resolvedModel,
+    };
+
+    return new OpenAIProvider(config);
+  }
+
+  if (modelConfig.provider === 'minimax') {
     const key = apiKey || getApiKey('minimax');
 
     const config: ProviderConfig = {
@@ -47,7 +65,7 @@ program
   .command('chat')
   .description('Start interactive chat with AI')
   .option('-m, --model <model>', 'AI model to use', config.ai.defaultModel || 'MiniMax-M2.5')
-  .action(async (options) => {
+  .action(async (options: ModelOption) => {
     try {
       const model = resolveModel(options.model);
       console.log(chalk.blue(`Starting chat with model: ${model}`));
@@ -124,7 +142,7 @@ program
   .command('ask <prompt>')
   .description('Ask a single question to AI')
   .option('-m, --model <model>', 'AI model to use', config.ai.defaultModel || 'MiniMax-M2.5')
-  .action(async (prompt: string, options) => {
+  .action(async (prompt: string, options: ModelOption) => {
     try {
       const model = resolveModel(options.model);
       const provider = createProvider(model);
@@ -200,9 +218,10 @@ program
   .action(() => {
     console.log(chalk.blue('Current configuration:\n'));
     console.log(`  Default model: ${config.ai.defaultModel}`);
+    console.log(`  OpenAI API Key: ${config.ai.openaiApiKey ? '***' + config.ai.openaiApiKey.slice(-4) : 'Not set'}`);
     console.log(`  MiniMax API Key: ${config.ai.minimaxApiKey ? '***' + config.ai.minimaxApiKey.slice(-4) : 'Not set'}`);
     console.log();
-    console.log(chalk.gray('Set MINIMAX_API_KEY environment variable to configure your API key.'));
+    console.log(chalk.gray('Set OPENAI_API_KEY or MINIMAX_API_KEY environment variables to configure your API key.'));
   });
 
 program.parse();
