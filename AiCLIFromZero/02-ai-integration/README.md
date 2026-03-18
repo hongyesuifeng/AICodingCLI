@@ -10,6 +10,7 @@
 2. 集成 OpenAI API
 3. 集成 Anthropic API
 4. 实现模型配置和切换
+5. 集成 MiniMax API（支持 thinking 模式）
 
 ## 章节内容
 
@@ -17,6 +18,7 @@
 - [2.2 OpenAI SDK 集成](./02-openai-sdk.md)
 - [2.3 Anthropic SDK 集成](./03-anthropic-sdk.md)
 - [2.4 模型配置和切换](./04-model-switching.md)
+- [2.5 MiniMax SDK 集成](./05-minimax-sdk.md) 🆕
 
 ## 实践项目：多模型聊天客户端
 
