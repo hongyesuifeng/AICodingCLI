@@ -415,4 +415,4 @@ main();
 
 ## 下一步
 
-完成第02章后，继续学习 [第03章：流式输出处理](../03-streaming/README.md) →
+完成本节后，继续学习 [2.5 MiniMax SDK 集成](./05-minimax-sdk.md) →
