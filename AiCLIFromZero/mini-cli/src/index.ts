@@ -6,6 +6,7 @@ import { MiniMaxProvider } from './providers/minimax.js';
 import { OpenAIProvider } from './providers/openai.js';
 import { ProviderRegistry } from './providers/registry.js';
 import { ModelManager } from './managers/model-manager.js';
+import { StreamRenderer } from './terminal/stream-renderer.js';
 import { type Message } from './types/message.js';
 import {
   resolveModel,
@@ -29,6 +30,7 @@ const modelManager = new ModelManager(
   config.ai.defaultModel || 'MiniMax-M2.5',
   { registry }
 );
+const streamRenderer = new StreamRenderer();
 
 program
   .name('mini-cli')
@@ -77,28 +79,8 @@ program
         messages.push({ role: 'user', content: userInput });
 
         // 流式输出响应
-        process.stdout.write(chalk.cyan('AI: '));
-        let fullResponse = '';
-        let isThinking = false;
-
         try {
-          for await (const chunk of provider.stream(messages)) {
-            if (chunk.type === 'thinking') {
-              if (!isThinking) {
-                process.stdout.write(chalk.gray('\n[思考中...]\n'));
-                isThinking = true;
-              }
-              process.stdout.write(chalk.gray(chunk.delta));
-            } else if (chunk.type === 'text' || !chunk.type) {
-              if (isThinking) {
-                process.stdout.write(chalk.reset('\n[回复]\n'));
-                isThinking = false;
-              }
-              process.stdout.write(chunk.delta);
-            }
-            fullResponse += chunk.delta;
-          }
-          console.log('\n');
+          const fullResponse = await streamRenderer.render(provider.stream(messages));
 
           // 添加助手消息
           messages.push({ role: 'assistant', content: fullResponse });
@@ -126,26 +108,7 @@ program
         { role: 'user', content: prompt },
       ];
 
-      // 流式输出
-      process.stdout.write(chalk.cyan('AI: '));
-      let isThinking = false;
-
-      for await (const chunk of provider.stream(messages)) {
-        if (chunk.type === 'thinking') {
-          if (!isThinking) {
-            process.stdout.write(chalk.gray('\n[思考中...]\n'));
-            isThinking = true;
-          }
-          process.stdout.write(chalk.gray(chunk.delta));
-        } else if (chunk.type === 'text' || !chunk.type) {
-          if (isThinking) {
-            process.stdout.write(chalk.reset('\n[回复]\n'));
-            isThinking = false;
-          }
-          process.stdout.write(chunk.delta);
-        }
-      }
-      console.log('\n');
+      await streamRenderer.render(provider.stream(messages));
     } catch (error: any) {
       console.error(chalk.red(`Error: ${error.message}`));
       process.exit(1);
