@@ -4,56 +4,31 @@ import chalk from 'chalk';
 import process from 'node:process';
 import { MiniMaxProvider } from './providers/minimax.js';
 import { OpenAIProvider } from './providers/openai.js';
-import { type AIProvider, type ProviderConfig } from './providers/base-provider.js';
+import { ProviderRegistry } from './providers/registry.js';
+import { ModelManager } from './managers/model-manager.js';
 import { type Message } from './types/message.js';
 import {
   resolveModel,
   MODEL_ALIASES,
   MODELS,
   loadConfig,
-  getApiKey,
 } from './config/loader.js';
 
 interface ModelOption {
   model: string;
 }
 
-// 创建 Provider 工厂函数
-function createProvider(model: string, apiKey?: string): AIProvider {
-  const resolvedModel = resolveModel(model);
-  const modelConfig = MODELS[resolvedModel];
-
-  if (!modelConfig) {
-    throw new Error(`Unknown model: ${model}`);
-  }
-
-  if (modelConfig.provider === 'openai') {
-    const key = apiKey || getApiKey('openai');
-
-    const config: ProviderConfig = {
-      apiKey: key,
-      model: resolvedModel,
-    };
-
-    return new OpenAIProvider(config);
-  }
-
-  if (modelConfig.provider === 'minimax') {
-    const key = apiKey || getApiKey('minimax');
-
-    const config: ProviderConfig = {
-      apiKey: key,
-      model: resolvedModel,
-    };
-
-    return new MiniMaxProvider(config);
-  }
-
-  throw new Error(`Unknown model: ${model}`);
-}
-
 const program = new Command();
 const config = loadConfig();
+const registry = new ProviderRegistry();
+
+registry.register('openai', (providerConfig) => new OpenAIProvider(providerConfig));
+registry.register('minimax', (providerConfig) => new MiniMaxProvider(providerConfig));
+
+const modelManager = new ModelManager(
+  config.ai.defaultModel || 'MiniMax-M2.5',
+  { registry }
+);
 
 program
   .name('mini-cli')
@@ -71,7 +46,7 @@ program
       console.log(chalk.blue(`Starting chat with model: ${model}`));
       console.log(chalk.gray('Type "exit" or "quit" to end the chat.\n'));
 
-      const provider = createProvider(model);
+      const provider = modelManager.getProvider(model);
       const messages: Message[] = [];
 
       // 简单的 REPL 循环
@@ -145,7 +120,7 @@ program
   .action(async (prompt: string, options: ModelOption) => {
     try {
       const model = resolveModel(options.model);
-      const provider = createProvider(model);
+      const provider = modelManager.getProvider(model);
 
       const messages: Message[] = [
         { role: 'user', content: prompt },
