@@ -33,6 +33,7 @@ mini-cli/
 │   ├── config/                 # 配置与模型元数据
 │   ├── managers/               # 运行时管理层
 │   ├── providers/              # AI Provider 抽象与实现
+│   ├── tools/                  # 工具定义、注册、执行与安全控制
 │   ├── streaming/              # 流式解析与流处理
 │   ├── terminal/               # 终端渲染与显示
 │   ├── types/                  # 核心类型定义
@@ -50,6 +51,9 @@ CLI(index.ts)
   -> ModelManager
     -> ProviderRegistry
       -> OpenAIProvider / MiniMaxProvider
+  -> ToolManager
+    -> ToolRegistry
+    -> ToolExecutor
   -> StreamRenderer
     -> StreamHandler
       -> provider.stream(...)
@@ -61,7 +65,7 @@ config/loader.ts
   -> 从环境变量加载 API Key / 默认模型
 
 test/*
-  -> 验证抽象层、配置层、错误层、重试层、流式层、终端层
+  -> 验证抽象层、配置层、错误层、重试层、流式层、终端层、工具层
 ```
 
 ## 核心模块
@@ -75,6 +79,7 @@ test/*
 - 定义命令行命令：`chat`、`ask`、`models`、`config`
 - 初始化 `ProviderRegistry`
 - 初始化 `ModelManager`
+- 初始化内置工具注册表与 `ToolManager`
 - 将 provider 输出交给 `StreamRenderer` 进行终端渲染
 
 它是编排层，不应承载复杂的 provider 选择逻辑或流式解析细节。
@@ -173,6 +178,29 @@ test/*
 - `StreamRenderer` 依赖 `StreamHandler`
 - 这些模块本身不依赖具体 provider，实现上保持纯工具化和可测试
 
+### 6.5 工具系统层
+
+文件：
+
+- [src/tools/registry.ts](/mnt/d/AICodeCLI/AiCLIFromZero/mini-cli/src/tools/registry.ts)
+- [src/tools/executor.ts](/mnt/d/AICodeCLI/AiCLIFromZero/mini-cli/src/tools/executor.ts)
+- [src/tools/built-in.ts](/mnt/d/AICodeCLI/AiCLIFromZero/mini-cli/src/tools/built-in.ts)
+- [src/tools/tool-manager.ts](/mnt/d/AICodeCLI/AiCLIFromZero/mini-cli/src/tools/tool-manager.ts)
+- [src/tools/security/path-validator.ts](/mnt/d/AICodeCLI/AiCLIFromZero/mini-cli/src/tools/security/path-validator.ts)
+- [src/tools/security/command-filter.ts](/mnt/d/AICodeCLI/AiCLIFromZero/mini-cli/src/tools/security/command-filter.ts)
+
+职责：
+
+- 定义工具注册与发现
+- 按 schema 校验参数并执行工具
+- 对文件路径和 shell 命令做安全限制
+- 编排多轮 tool calling 对话
+
+关系：
+
+- `ToolManager` 依赖 `ToolRegistry` 和 `ToolExecutor`
+- provider 的 `chatWithTools` 与工具系统一起完成多轮调用
+
 ### 7. 终端渲染层
 
 文件：
@@ -198,6 +226,7 @@ test/*
 
 - [src/types/message.ts](/mnt/d/AICodeCLI/AiCLIFromZero/mini-cli/src/types/message.ts)
 - [src/types/stream.ts](/mnt/d/AICodeCLI/AiCLIFromZero/mini-cli/src/types/stream.ts)
+- [src/types/tool.ts](/mnt/d/AICodeCLI/AiCLIFromZero/mini-cli/src/types/tool.ts)
 
 职责：
 
@@ -210,6 +239,7 @@ test/*
 
 - [src/utils/errors.ts](/mnt/d/AICodeCLI/AiCLIFromZero/mini-cli/src/utils/errors.ts)
 - [src/utils/retry.ts](/mnt/d/AICodeCLI/AiCLIFromZero/mini-cli/src/utils/retry.ts)
+- [src/utils/timeout.ts](/mnt/d/AICodeCLI/AiCLIFromZero/mini-cli/src/utils/timeout.ts)
 
 职责：
 
@@ -222,11 +252,20 @@ test/*
 
 1. `index.ts` 读取命令行参数与环境配置
 2. `ModelManager` 解析模型并返回对应 provider
-3. provider 执行 `stream(messages)`
-4. `StreamRenderer` 消费 stream
-5. `StreamRenderer` 内部通过 `StreamHandler` 处理流事件
-6. 渲染结果输出到终端
-7. `chat` 模式下将完整响应重新写回消息历史
+3. 如果 provider 支持工具调用，则进入 `ToolManager` 多轮对话流程
+4. 如果不走工具调用，则 provider 执行 `stream(messages)`
+5. `StreamRenderer` 消费 stream
+6. `StreamRenderer` 内部通过 `StreamHandler` 处理流事件
+7. 渲染结果输出到终端
+8. `chat` 模式下将完整响应重新写回消息历史
+
+### Tool Calling 执行流程
+
+1. `ToolManager` 将已注册工具暴露给 provider
+2. provider 通过 `chatWithTools()` 返回工具调用请求
+3. `ToolExecutor` 做参数校验和安全检查后执行工具
+4. 工具结果以 `tool` 消息回填到对话历史
+5. provider 基于工具结果生成下一轮回复或继续调用工具
 
 ## 测试结构
 
@@ -242,6 +281,9 @@ test/*
 - `model-manager.test.ts`: 模型切换与 provider 缓存
 - `streaming.test.ts`: buffer、SSE、JSON、stream handler
 - `terminal.test.ts`: 进度条和终端流渲染
+- `tool-registry.test.ts`: 工具注册与发现
+- `tool-executor.test.ts`: 工具执行、安全限制和参数校验
+- `tool-manager.test.ts`: 多轮 tool calling 编排
 
 ## 当前设计边界
 
@@ -249,9 +291,9 @@ test/*
 
 - CLI 编排仍集中在 `index.ts`
 - 还没有独立的会话管理器
-- 还没有工具执行层
 - 还没有更完整的 provider 集成测试
 - 还没有将 streaming 工具接入底层 HTTP/SSE 读取流程，目前主要用于结构化学习和单元测试
+- `chat` / `ask` 已接入内置工具系统，但当前 CLI 仍未展示每一步工具执行细节
 
 ## 后续修改建议
 

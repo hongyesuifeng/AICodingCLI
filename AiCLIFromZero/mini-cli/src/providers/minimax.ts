@@ -254,6 +254,16 @@ export class MiniMaxProvider extends BaseProvider {
         }
 
         result.push({ role: 'assistant', content });
+      } else if (msg.role === 'tool') {
+        result.push({
+          role: 'user',
+          content: [{
+            type: 'tool_result',
+            tool_use_id: msg.toolCallId,
+            content: msg.content,
+            is_error: msg.isError,
+          }],
+        });
       }
     }
 

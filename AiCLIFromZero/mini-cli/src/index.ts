@@ -8,6 +8,10 @@ import { ProviderRegistry } from './providers/registry.js';
 import { ModelManager } from './managers/model-manager.js';
 import { StreamRenderer } from './terminal/stream-renderer.js';
 import { type Message } from './types/message.js';
+import { createBuiltInTools } from './tools/built-in.js';
+import { ToolExecutor } from './tools/executor.js';
+import { ToolRegistry } from './tools/registry.js';
+import { ToolManager } from './tools/tool-manager.js';
 import {
   resolveModel,
   MODEL_ALIASES,
@@ -31,6 +35,36 @@ const modelManager = new ModelManager(
   { registry }
 );
 const streamRenderer = new StreamRenderer();
+const toolRegistry = new ToolRegistry();
+const toolExecutor = new ToolExecutor(toolRegistry, {
+  cwd: process.cwd(),
+});
+toolRegistry.registerAll(createBuiltInTools(toolExecutor));
+const toolManager = new ToolManager(toolRegistry, toolExecutor);
+
+async function runConversation(
+  model: string,
+  messages: Message[]
+): Promise<{ fullResponse: string; messages: Message[] }> {
+  const provider = modelManager.getProvider(model);
+
+  if (provider.capabilities().tools) {
+    const result = await toolManager.runConversation(provider, messages);
+    process.stdout.write(chalk.cyan('AI: '));
+    process.stdout.write(result.content);
+    process.stdout.write('\n\n');
+    return {
+      fullResponse: result.content,
+      messages: result.messages,
+    };
+  }
+
+  const fullResponse = await streamRenderer.render(provider.stream(messages));
+  return {
+    fullResponse,
+    messages: [...messages, { role: 'assistant', content: fullResponse }],
+  };
+}
 
 program
   .name('mini-cli')
@@ -48,7 +82,6 @@ program
       console.log(chalk.blue(`Starting chat with model: ${model}`));
       console.log(chalk.gray('Type "exit" or "quit" to end the chat.\n'));
 
-      const provider = modelManager.getProvider(model);
       const messages: Message[] = [];
 
       // 简单的 REPL 循环
@@ -80,10 +113,8 @@ program
 
         // 流式输出响应
         try {
-          const fullResponse = await streamRenderer.render(provider.stream(messages));
-
-          // 添加助手消息
-          messages.push({ role: 'assistant', content: fullResponse });
+          const result = await runConversation(model, messages);
+          messages.splice(0, messages.length, ...result.messages);
         } catch (error: any) {
           console.error(chalk.red(`\nError: ${error.message}\n`));
         }
@@ -102,13 +133,11 @@ program
   .action(async (prompt: string, options: ModelOption) => {
     try {
       const model = resolveModel(options.model);
-      const provider = modelManager.getProvider(model);
-
       const messages: Message[] = [
         { role: 'user', content: prompt },
       ];
 
-      await streamRenderer.render(provider.stream(messages));
+      await runConversation(model, messages);
     } catch (error: any) {
       console.error(chalk.red(`Error: ${error.message}`));
       process.exit(1);

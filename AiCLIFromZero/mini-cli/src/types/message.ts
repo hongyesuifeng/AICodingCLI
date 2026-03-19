@@ -1,6 +1,8 @@
 // src/types/message.ts
+import type { JSONSchema, ToolCall, ToolCallResult, ToolDefinition } from './tool.js';
+
 // 消息角色
-export type MessageRole = 'system' | 'user' | 'assistant';
+export type MessageRole = 'system' | 'user' | 'assistant' | 'tool';
 
 // 多模态内容
 export interface ContentPart {
@@ -28,6 +30,13 @@ export interface AssistantMessage {
   toolCalls?: ToolCall[];
 }
 
+export interface ToolMessage {
+  role: 'tool';
+  content: string;
+  toolCallId: string;
+  isError?: boolean;
+}
+
 // 系统消息
 export interface SystemMessage {
   role: 'system';
@@ -35,31 +44,10 @@ export interface SystemMessage {
 }
 
 // 联合类型
-export type Message = UserMessage | AssistantMessage | SystemMessage;
+export type Message = UserMessage | AssistantMessage | SystemMessage | ToolMessage;
 
-// 工具调用
-export interface ToolCall {
-  id: string;
-  name: string;
-  arguments: Record<string, any>;
-}
-
-// 工具定义
-export interface Tool {
-  name: string;
-  description: string;
-  parameters: JSONSchema;
-}
-
-// JSON Schema
-export interface JSONSchema {
-  type: string;
-  properties?: Record<string, JSONSchema>;
-  required?: string[];
-  description?: string;
-  enum?: string[];
-  items?: JSONSchema;
-}
+export type Tool = ToolDefinition;
+export type { JSONSchema, ToolCall, ToolCallResult };
 
 // 聊天选项
 export interface ChatOptions {

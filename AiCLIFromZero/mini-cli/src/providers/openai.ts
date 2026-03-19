@@ -137,8 +137,11 @@ export class OpenAIProvider extends BaseProvider {
 
       const choice = response.choices[0];
       const toolCalls = choice?.message?.tool_calls
-        ?.filter((toolCall) => toolCall.type === 'function')
-        .map((toolCall) => ({
+        ?.filter((toolCall: { type: string }) => toolCall.type === 'function')
+        .map((toolCall: {
+          id: string;
+          function: { name: string; arguments: string };
+        }) => ({
           id: toolCall.id,
           name: toolCall.function.name,
           arguments: JSON.parse(toolCall.function.arguments),
@@ -199,6 +202,14 @@ export class OpenAIProvider extends BaseProvider {
               arguments: JSON.stringify(toolCall.arguments),
             },
           })),
+        };
+      }
+
+      if (message.role === 'tool') {
+        return {
+          role: 'tool',
+          tool_call_id: message.toolCallId,
+          content: message.content,
         };
       }
 
