@@ -1,4 +1,7 @@
 // src/index.ts
+// 加载环境变量（必须在其他导入之前）
+import 'dotenv/config';
+
 import { Command } from 'commander';
 import chalk from 'chalk';
 import process from 'node:process';
@@ -6,12 +9,15 @@ import { MiniMaxProvider } from './providers/minimax.js';
 import { OpenAIProvider } from './providers/openai.js';
 import { ProviderRegistry } from './providers/registry.js';
 import { ModelManager } from './managers/model-manager.js';
+import { SessionManager } from './managers/session-manager.js';
 import { StreamRenderer } from './terminal/stream-renderer.js';
 import { type Message } from './types/message.js';
 import { createBuiltInTools } from './tools/built-in.js';
 import { ToolExecutor } from './tools/executor.js';
 import { ToolRegistry } from './tools/registry.js';
 import { ToolManager } from './tools/tool-manager.js';
+import { MemoryStorage } from './storage/memory-storage.js';
+import { FileStorage } from './storage/file-storage.js';
 import {
   resolveModel,
   MODEL_ALIASES,
@@ -21,6 +27,11 @@ import {
 
 interface ModelOption {
   model: string;
+}
+
+interface SessionOption {
+  session?: string;
+  save?: boolean;
 }
 
 const program = new Command();
@@ -41,6 +52,13 @@ const toolExecutor = new ToolExecutor(toolRegistry, {
 });
 toolRegistry.registerAll(createBuiltInTools(toolExecutor));
 const toolManager = new ToolManager(toolRegistry, toolExecutor);
+
+// 会话管理器
+const sessionManager = new SessionManager({
+  defaultModel: config.ai.defaultModel || 'MiniMax-M2.5',
+  maxContextTokens: 4000,
+  storage: new MemoryStorage(),
+});
 
 async function runConversation(
   model: string,
@@ -76,13 +94,28 @@ program
   .command('chat')
   .description('Start interactive chat with AI')
   .option('-m, --model <model>', 'AI model to use', config.ai.defaultModel || 'MiniMax-M2.5')
-  .action(async (options: ModelOption) => {
+  .option('-s, --session <id>', 'Resume session with given ID')
+  .action(async (options: ModelOption & SessionOption) => {
     try {
       const model = resolveModel(options.model);
-      console.log(chalk.blue(`Starting chat with model: ${model}`));
-      console.log(chalk.gray('Type "exit" or "quit" to end the chat.\n'));
 
-      const messages: Message[] = [];
+      // 创建或加载会话
+      if (options.session) {
+        const loaded = await sessionManager.loadSession(options.session);
+        if (!loaded) {
+          console.log(chalk.yellow(`Session ${options.session} not found, creating new session`));
+          await sessionManager.createSession();
+        }
+      } else {
+        await sessionManager.createSession();
+      }
+
+      sessionManager.setModel(model);
+
+      console.log(chalk.blue(`Starting chat with model: ${model}`));
+      console.log(chalk.gray(`Session ID: ${sessionManager.getSessionId()}`));
+      console.log(chalk.gray('Type "exit" or "quit" to end the chat.'));
+      console.log(chalk.gray('Type "stats" to see session statistics.\n'));
 
       // 简单的 REPL 循环
       const readline = await import('readline');
@@ -100,8 +133,16 @@ program
 
         if (userInput.toLowerCase() === 'exit' || userInput.toLowerCase() === 'quit') {
           console.log(chalk.gray('\nGoodbye!'));
+          console.log(chalk.gray(`Session: ${sessionManager.formatSessionInfo()}`));
           rl.close();
           break;
+        }
+
+        if (userInput.toLowerCase() === 'stats') {
+          console.log(chalk.blue('\nSession Statistics:'));
+          console.log(sessionManager.formatSessionInfo());
+          console.log();
+          continue;
         }
 
         if (!userInput.trim()) {
@@ -109,12 +150,19 @@ program
         }
 
         // 添加用户消息
-        messages.push({ role: 'user', content: userInput });
+        await sessionManager.addMessage({ role: 'user', content: userInput });
+
+        // 获取用于 API 的消息（可能被截断）
+        const messages = sessionManager.getMessagesForAPI();
 
         // 流式输出响应
         try {
           const result = await runConversation(model, messages);
-          messages.splice(0, messages.length, ...result.messages);
+
+          // 更新会话
+          for (const msg of result.messages.slice(messages.length)) {
+            await sessionManager.addMessage(msg);
+          }
         } catch (error: any) {
           console.error(chalk.red(`\nError: ${error.message}\n`));
         }
@@ -189,6 +237,31 @@ program
     console.log(`  MiniMax API Key: ${config.ai.minimaxApiKey ? '***' + config.ai.minimaxApiKey.slice(-4) : 'Not set'}`);
     console.log();
     console.log(chalk.gray('Set OPENAI_API_KEY or MINIMAX_API_KEY environment variables to configure your API key.'));
+  });
+
+// 会话列表命令
+program
+  .command('sessions')
+  .description('List all saved sessions')
+  .action(async () => {
+    try {
+      const sessions = await sessionManager.listSessions();
+      if (sessions.length === 0) {
+        console.log(chalk.yellow('No sessions found.'));
+        return;
+      }
+
+      console.log(chalk.blue('Saved sessions:\n'));
+      for (const session of sessions) {
+        const date = new Date(session.updatedAt).toLocaleString();
+        console.log(`  ${chalk.green(session.id)}`);
+        console.log(chalk.gray(`    Messages: ${session.messageCount}`));
+        console.log(chalk.gray(`    Updated: ${date}`));
+        console.log();
+      }
+    } catch (error: any) {
+      console.error(chalk.red(`Error: ${error.message}`));
+    }
   });
 
 program.parse();

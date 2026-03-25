@@ -1,4 +1,4 @@
-import type { StreamChunk, ToolCall } from './message.js';
+import type { StreamChunk } from './message.js';
 
 export interface StreamHandlerConfig {
   onChunk?: (chunk: StreamChunk) => void;
@@ -6,8 +6,10 @@ export interface StreamHandlerConfig {
   onError?: (error: Error) => void;
 }
 
-export interface ToolCallDelta extends Partial<ToolCall> {
-  arguments?: string;
+export interface ToolCallDelta {
+  id?: string;
+  name?: string;
+  arguments?: string | Record<string, unknown>;
 }
 
 export type StreamEvent =
