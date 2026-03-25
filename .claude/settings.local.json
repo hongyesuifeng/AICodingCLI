@@ -29,7 +29,8 @@
       "Bash(git commit -m \"$\\(cat <<'EOF'\n更新子模块引用\n\n- codex: 更新到最新提交\n- gemini-cli: 更新到最新提交  \n- opencode: 更新到最新提交\n\nCo-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>\nEOF\n\\)\")",
       "Bash(git add docs/ai-coding-tools-overview.md docs/claude-code.md docs/codex-cli.md docs/opencode.md && git commit -m \"$\\(cat <<'EOF'\n更新核心工具技术文档，重点优化 Codex CLI、OpenCode 和 Claude Code\n\n- 新增 Claude Code 完整技术文档 \\(979 行\\)\n- 增强 Codex CLI 文档：安全沙箱详解、实战场景\n- 增强 OpenCode 文档：多客户端工作流、多模型策略\n- 更新总览文档：三大核心工具对比矩阵、选择决策树\n\nCo-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>\nEOF\n\\)\")",
       "Bash(git add:*)",
-      "Bash(git commit:*)"
+      "Bash(git commit:*)",
+      "Bash(git submodule:*)"
     ]
   }
 }
