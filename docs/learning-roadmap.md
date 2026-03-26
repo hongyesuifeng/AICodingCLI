@@ -29,6 +29,8 @@
 │   • CLI 开发        • 流式处理        • Gemini CLI      • MCP 服务器         │
 │   • 异步编程        • 沙箱安全        • OpenCode        • 完整项目           │
 │   • Git 操作        • 工具系统        • Aider                                │
+│                    • 技能系统         • Mini-CLI       • 自定义扩展          │
+│                    • 钩子系统                                                 │
 │                                                                             │
 └─────────────────────────────────────────────────────────────────────────────┘
 ```
@@ -621,6 +623,85 @@ codex/codex-rs/process-hardening/ # 进程加固
    opencode/packages/desktop/              # Electron/Tauri
 ```
 
+### 3.5 Mini-CLI 源码精读 (学习推荐)
+
+**为什么推荐 Mini-CLI 作为学习起点？**
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                      Mini-CLI 学习优势                                        │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                             │
+│  1. 代码简洁                                                                │
+│     • 每个模块职责单一                                                      │
+│     • 完整的中文注释                                                        │
+│     • 没有过度工程化                                                        │
+│                                                                             │
+│  2. 功能完整                                                                │
+│     • 多模型 Provider 抽象                                                  │
+│     • 流式输出处理                                                          │
+│     • 工具调用系统                                                          │
+│     • MCP 协议支持                                                          │
+│     • 技能/钩子系统                                                         │
+│     • Git 集成                                                              │
+│                                                                             │
+│  3. 对比学习                                                                │
+│     • 与 Claude Code、Codex CLI 对比                                       │
+│     • 理解相同功能的不同实现                                                │
+│     • 学习最佳实践                                                          │
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
+
+**推荐阅读顺序：**
+
+```
+1. 入口和配置 (Day 1-2)
+   mini-cli/src/index.ts              # CLI 入口，命令定义
+   mini-cli/src/config/loader.ts      # 配置加载
+   mini-cli/src/config/models.ts      # 模型元数据
+
+2. 核心管理层 (Day 3-5)
+   mini-cli/src/managers/model-manager.ts    # 模型管理
+   mini-cli/src/managers/session-manager.ts  # 会话管理
+
+3. Provider 层 (Day 6-8)
+   mini-cli/src/providers/base-provider.ts   # Provider 基类
+   mini-cli/src/providers/openai.ts          # OpenAI 实现
+   mini-cli/src/providers/minimax.ts         # MiniMax 实现
+   mini-cli/src/providers/registry.ts        # Provider 注册表
+
+4. 工具系统 (Day 9-11)
+   mini-cli/src/tools/registry.ts            # 工具注册
+   mini-cli/src/tools/executor.ts            # 工具执行
+   mini-cli/src/tools/built-in.ts            # 内置工具
+   mini-cli/src/tools/security/              # 安全控制
+
+5. 流式处理 (Day 12-14)
+   mini-cli/src/streaming/buffer-manager.ts  # 缓冲区管理
+   mini-cli/src/streaming/sse-parser.ts      # SSE 解析
+   mini-cli/src/streaming/stream-handler.ts  # 流处理
+
+6. 高级特性 (Day 15-20)
+   mini-cli/src/mcp/                         # MCP 协议
+   mini-cli/src/skills/                      # 技能系统
+   mini-cli/src/hooks/                       # 钩子系统
+   mini-cli/src/git/                         # Git 集成
+```
+
+**重点学习文件：**
+
+| 文件 | 学习要点 | 对比参考 |
+|------|----------|----------|
+| `index.ts` | CLI 编排、命令定义 | Codex CLI `main.rs` |
+| `providers/base-provider.ts` | 抽象类设计 | Aider `models.py` |
+| `tools/executor.ts` | 工具执行、安全检查 | Codex CLI `skills/` |
+| `streaming/stream-handler.ts` | 流式处理 | Gemini CLI `core/` |
+| `mcp/mcp-server.ts` | MCP 协议实现 | Codex CLI `app-server/` |
+| `skills/skill-registry.ts` | 技能注册与匹配 | Claude Code 技能系统 |
+| `hooks/hook-manager.ts` | 钩子生命周期 | Codex CLI 钩子系统 |
+| `git/commit-generator.ts` | AI 驱动 Commit | Aider `repo.py` |
+
 ---
 
 ## 第四阶段：实战项目 (8-12 周)
@@ -628,6 +709,8 @@ codex/codex-rs/process-hardening/ # 进程加固
 ### 项目一：Mini AI CLI (2-3 周)
 
 **目标：** 构建一个最小可行的 AI CLI 工具
+
+> **💡 学习提示：** 完整的参考实现见 [Mini-CLI](./mini-cli.md)，包含详细的架构文档和测试计划。
 
 **功能需求：**
 - 交互式聊天
@@ -789,10 +872,13 @@ Available tools: ${this.tools.map(t => t.name).join(', ')}`;
 
 **目标：** 实现一个完整的 MCP 服务器
 
+> **💡 学习提示：** Mini-CLI 提供了完整的 MCP 实现，包括服务端、客户端和文件系统服务器，详见 [mini-cli/src/mcp/](../AiCLIFromZero/mini-cli/src/mcp/)
+
 **参考源码：**
 ```
 codex/codex-rs/docs/codex_mcp_interface.md
 gemini-cli/packages/core/src/mcp/
+mini-cli/src/mcp/                      # 完整的 MCP 实现 (推荐学习)
 ```
 
 **项目结构：**
@@ -1031,5 +1117,21 @@ Week 5-6: 高级特性
 2. **掌握** LLM 集成和流式处理技术
 3. **实现** 功能完整的 AI 编程助手
 4. **扩展** 新特性和工具
+
+## 学习资源汇总
+
+### 本地文档
+
+| 文档 | 路径 | 内容 |
+|------|------|------|
+| Mini-CLI 文档 | [mini-cli.md](./mini-cli.md) | 学习型 AI CLI 项目详解 |
+| Mini-CLI 架构 | [../AiCLIFromZero/mini-cli/ARCHITECTURE.md](../AiCLIFromZero/mini-cli/ARCHITECTURE.md) | 详细架构文档 |
+| Mini-CLI 测试 | [../AiCLIFromZero/mini-cli/TEST_PLAN.md](../AiCLIFromZero/mini-cli/TEST_PLAN.md) | 测试计划和用例 |
+| Claude Code | [claude-code.md](./claude-code.md) | Claude Code 详解 |
+| Codex CLI | [codex-cli.md](./codex-cli.md) | Codex CLI 详解 |
+| Gemini CLI | [gemini-cli.md](./gemini-cli.md) | Gemini CLI 详解 |
+| Aider | [aider.md](./aider.md) | Aider 详解 |
+| OpenCode | [opencode.md](./opencode.md) | OpenCode 详解 |
+| Goose | [goose.md](./goose.md) | Goose 详解 |
 
 祝你学习顺利！如有问题，可以参考各项目的 GitHub Issues 和社区讨论。
