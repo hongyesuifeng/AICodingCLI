@@ -1,29 +1,55 @@
 // src/index.ts
+// Mini AI CLI 主入口
 // 加载环境变量（必须在其他导入之前）
 import 'dotenv/config';
 
 import { Command } from 'commander';
 import chalk from 'chalk';
 import process from 'node:process';
+
+// Providers
 import { MiniMaxProvider } from './providers/minimax.js';
 import { OpenAIProvider } from './providers/openai.js';
 import { ProviderRegistry } from './providers/registry.js';
+
+// Managers
 import { ModelManager } from './managers/model-manager.js';
 import { SessionManager } from './managers/session-manager.js';
+
+// Terminal
 import { StreamRenderer } from './terminal/stream-renderer.js';
+
+// Types
 import { type Message } from './types/message.js';
+
+// Tools
 import { createBuiltInTools } from './tools/built-in.js';
 import { ToolExecutor } from './tools/executor.js';
 import { ToolRegistry } from './tools/registry.js';
 import { ToolManager } from './tools/tool-manager.js';
+
+// Storage
 import { MemoryStorage } from './storage/memory-storage.js';
-import { FileStorage } from './storage/file-storage.js';
+
+// Config
 import {
   resolveModel,
   MODEL_ALIASES,
   MODELS,
   loadConfig,
 } from './config/loader.js';
+
+// Skills (新增)
+import { createDefaultSkillRegistry, SkillRegistry } from './skills/index.js';
+
+// Hooks (新增)
+import { HookManager, createPerformanceHook, createSensitiveFilterHook } from './hooks/index.js';
+
+// Git (新增)
+import { GitCommands, GitStatusParser, CommitMessageGenerator } from './git/index.js';
+
+// MCP (新增)
+import { MCPServer, MCPClient, FileSystemMCPServer } from './mcp/index.js';
 
 interface ModelOption {
   model: string;
@@ -38,14 +64,20 @@ const program = new Command();
 const config = loadConfig();
 const registry = new ProviderRegistry();
 
+// 注册 providers
 registry.register('openai', (providerConfig) => new OpenAIProvider(providerConfig));
 registry.register('minimax', (providerConfig) => new MiniMaxProvider(providerConfig));
 
+// 初始化模型管理器
 const modelManager = new ModelManager(
   config.ai.defaultModel || 'MiniMax-M2.5',
   { registry }
 );
+
+// 初始化流式渲染器
 const streamRenderer = new StreamRenderer();
+
+// 初始化工具系统
 const toolRegistry = new ToolRegistry();
 const toolExecutor = new ToolExecutor(toolRegistry, {
   cwd: process.cwd(),
@@ -53,12 +85,27 @@ const toolExecutor = new ToolExecutor(toolRegistry, {
 toolRegistry.registerAll(createBuiltInTools(toolExecutor));
 const toolManager = new ToolManager(toolRegistry, toolExecutor);
 
-// 会话管理器
+// 初始化会话管理器
 const sessionManager = new SessionManager({
   defaultModel: config.ai.defaultModel || 'MiniMax-M2.5',
   maxContextTokens: 4000,
   storage: new MemoryStorage(),
 });
+
+// 初始化技能系统 (新增)
+const skillRegistry = createDefaultSkillRegistry();
+
+// 初始化钩子系统 (新增)
+const hookManager = new HookManager();
+
+// 注册性能监控钩子
+const performanceHooks = createPerformanceHook({ logToConsole: false });
+for (const hook of performanceHooks) {
+  hookManager.register(hook);
+}
+
+// 注册敏感信息过滤钩子
+hookManager.register(createSensitiveFilterHook({ logFiltered: false }));
 
 async function runConversation(
   model: string,
@@ -66,27 +113,88 @@ async function runConversation(
 ): Promise<{ fullResponse: string; messages: Message[] }> {
   const provider = modelManager.getProvider(model);
 
+  // 触发 preResponse 钩子
+  await hookManager.trigger('preResponse', {
+    sessionId: sessionManager.getSessionId() ?? undefined,
+    input: { messages, model },
+  });
+
+  let result: { fullResponse: string; messages: Message[] };
+
   if (provider.capabilities().tools) {
-    const result = await toolManager.runConversation(provider, messages);
+    const toolResult = await toolManager.runConversation(provider, messages);
     process.stdout.write(chalk.cyan('AI: '));
-    process.stdout.write(result.content);
+    process.stdout.write(toolResult.content);
     process.stdout.write('\n\n');
-    return {
-      fullResponse: result.content,
-      messages: result.messages,
+    result = {
+      fullResponse: toolResult.content,
+      messages: toolResult.messages,
+    };
+  } else {
+    const fullResponse = await streamRenderer.render(provider.stream(messages));
+    result = {
+      fullResponse,
+      messages: [...messages, { role: 'assistant', content: fullResponse }],
     };
   }
 
-  const fullResponse = await streamRenderer.render(provider.stream(messages));
-  return {
-    fullResponse,
-    messages: [...messages, { role: 'assistant', content: fullResponse }],
+  // 触发 postResponse 钩子
+  const hookResult = await hookManager.trigger('postResponse', {
+    sessionId: sessionManager.getSessionId() ?? undefined,
+    input: { messages, model },
+    output: {
+      content: result.fullResponse,
+      usage: { promptTokens: 0, completionTokens: 0 },
+    },
+  });
+
+  // 如果钩子修改了输出
+  if (hookResult.modifiedOutput?.content) {
+    result.fullResponse = hookResult.modifiedOutput.content;
+    result.messages[result.messages.length - 1].content = hookResult.modifiedOutput.content;
+  }
+
+  return result;
+}
+
+// 处理技能命令
+async function handleSkillCommand(
+  input: string,
+  context: { cwd: string; provider: any }
+): Promise<boolean> {
+  if (!skillRegistry.isSkillCommand(input)) {
+    return false;
+  }
+
+  const skillContext = {
+    input,
+    cwd: context.cwd,
+    config: {},
+    provider: context.provider,
+    output: (text: string) => console.log(chalk.cyan(text)),
+    sessionHistory: sessionManager.getMessagesForAPI().map((m) => ({
+      role: m.role,
+      content: typeof m.content === 'string' ? m.content : JSON.stringify(m.content),
+    })),
   };
+
+  const result = await skillRegistry.execute(input, skillContext);
+
+  if (result) {
+    if (result.success) {
+      console.log(chalk.green('\n' + result.output));
+    } else {
+      console.log(chalk.red('\n' + result.output));
+    }
+    return true;
+  }
+
+  return false;
 }
 
 program
   .name('mini-cli')
-  .description('Mini AI Coding CLI - 支持 MiniMax 模型')
+  .description('Mini AI Coding CLI - 支持 MiniMax 模型，集成 MCP/Skills/Hooks/Git')
   .version('1.0.0');
 
 // 交互式聊天命令
@@ -112,10 +220,16 @@ program
 
       sessionManager.setModel(model);
 
+      // 触发会话开始钩子
+      await hookManager.trigger('onSessionStart', {
+        sessionId: sessionManager.getSessionId() || undefined,
+      });
+
       console.log(chalk.blue(`Starting chat with model: ${model}`));
       console.log(chalk.gray(`Session ID: ${sessionManager.getSessionId()}`));
       console.log(chalk.gray('Type "exit" or "quit" to end the chat.'));
-      console.log(chalk.gray('Type "stats" to see session statistics.\n'));
+      console.log(chalk.gray('Type "stats" to see session statistics.'));
+      console.log(chalk.gray('Type /help to see available skills.\n'));
 
       // 简单的 REPL 循环
       const readline = await import('readline');
@@ -128,10 +242,17 @@ program
         return new Promise((resolve) => rl.question(query, resolve));
       };
 
+      const provider = modelManager.getProvider(model);
+
       while (true) {
         const userInput = await askQuestion(chalk.green('You: '));
 
         if (userInput.toLowerCase() === 'exit' || userInput.toLowerCase() === 'quit') {
+          // 触发会话结束钩子
+          await hookManager.trigger('onSessionEnd', {
+            sessionId: sessionManager.getSessionId() ?? undefined,
+          });
+
           console.log(chalk.gray('\nGoodbye!'));
           console.log(chalk.gray(`Session: ${sessionManager.formatSessionInfo()}`));
           rl.close();
@@ -146,6 +267,22 @@ program
         }
 
         if (!userInput.trim()) {
+          continue;
+        }
+
+        // 检查是否是技能命令
+        const isSkill = await handleSkillCommand(userInput, {
+          cwd: process.cwd(),
+          provider: {
+            chat: async (messages: Message[]) => {
+              const result = await provider.chat(messages);
+              return { content: result.content };
+            },
+          },
+        });
+
+        if (isSkill) {
+          console.log();
           continue;
         }
 
@@ -165,6 +302,13 @@ program
           }
         } catch (error: any) {
           console.error(chalk.red(`\nError: ${error.message}\n`));
+
+          // 触发错误钩子
+          await hookManager.trigger('onError', {
+            sessionId: sessionManager.getSessionId() ?? undefined,
+            error,
+            input: userInput,
+          });
         }
       }
     } catch (error: any) {
@@ -190,6 +334,77 @@ program
       console.error(chalk.red(`Error: ${error.message}`));
       process.exit(1);
     }
+  });
+
+// Git Commit 生成命令 (新增)
+program
+  .command('commit')
+  .description('Generate and create a Git commit message using AI')
+  .option('--no-verify', 'Skip pre-commit hooks', false)
+  .option('--dry-run', 'Only show the generated message, do not commit', false)
+  .action(async (options: { noVerify: boolean; dryRun: boolean }) => {
+    try {
+      const model = config.ai.defaultModel || 'MiniMax-M2.5';
+      const provider = modelManager.getProvider(model);
+
+      const generator = new CommitMessageGenerator(
+        {
+          chat: async (messages: Array<{ role: string; content: string }>) => {
+            const result = await provider.chat(messages as Message[]);
+            return { content: result.content };
+          },
+        },
+        process.cwd()
+      );
+
+      const message = await generator.generate();
+
+      console.log(chalk.blue('\nGenerated commit message:'));
+      console.log(chalk.green(`  ${message}\n`));
+
+      if (options.dryRun) {
+        console.log(chalk.gray('Dry run - not committing.'));
+        return;
+      }
+
+      const result = await generator.commit(message, { noVerify: options.noVerify });
+      console.log(chalk.green('Committed successfully!'));
+      console.log(result);
+    } catch (error: any) {
+      console.error(chalk.red(`Error: ${error.message}`));
+      process.exit(1);
+    }
+  });
+
+// Git 状态命令 (新增)
+program
+  .command('git-status')
+  .description('Show Git repository status')
+  .action(async () => {
+    try {
+      const parser = new GitStatusParser(process.cwd());
+      const status = await parser.getStatus();
+      console.log(parser.formatStatus(status));
+    } catch (error: any) {
+      console.error(chalk.red(`Error: ${error.message}`));
+      process.exit(1);
+    }
+  });
+
+// 技能列表命令 (新增)
+program
+  .command('skills')
+  .description('List all available skills')
+  .action(() => {
+    console.log(chalk.blue('Available skills:\n'));
+    const skills = skillRegistry.list();
+
+    for (const skill of skills) {
+      console.log(chalk.green(`  /${skill.name}`));
+      console.log(chalk.gray(`    ${skill.description}`));
+    }
+
+    console.log(chalk.gray('\nUse /help <skill-name> in chat for more details.'));
   });
 
 // 模型列表命令
@@ -263,5 +478,28 @@ program
       console.error(chalk.red(`Error: ${error.message}`));
     }
   });
+
+// 导出模块 (供外部使用)
+export {
+  // MCP
+  MCPServer,
+  MCPClient,
+  FileSystemMCPServer,
+  // Skills
+  skillRegistry,
+  SkillRegistry,
+  createDefaultSkillRegistry,
+  // Hooks
+  hookManager,
+  HookManager,
+  // Git
+  GitCommands,
+  GitStatusParser,
+  CommitMessageGenerator,
+  // Managers
+  modelManager,
+  sessionManager,
+  toolManager,
+};
 
 program.parse();
