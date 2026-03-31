@@ -1,6 +1,6 @@
-# GoodCodeCLI API 参考
+# ClaudeCode API 参考
 
-本文档提供 GoodCodeCLI 的核心 API 参考。
+本文档提供 ClaudeCode 的核心 API 参考。
 
 ## 核心 API
 
@@ -607,4 +607,4 @@ type SettingSource =
 
 ---
 
-> 本文档基于 GoodCodeCLI 源代码分析生成，提供了核心 API 的参考信息。
+> 本文档基于 ClaudeCode 源代码分析生成，提供了核心 API 的参考信息。

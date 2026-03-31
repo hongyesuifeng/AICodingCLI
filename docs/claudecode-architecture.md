@@ -1,12 +1,12 @@
-# GoodCodeCLI 架构详解
+# ClaudeCode 架构详解
 
-GoodCodeCLI 是一个功能强大的 AI 编程助手命令行工具，基于 Claude API 构建。本文档详细介绍其架构设计和实现原理。
+ClaudeCode 是一个功能强大的 AI 编程助手命令行工具，基于 Claude API 构建。本文档详细介绍其架构设计和实现原理。
 
 ## 项目概述
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────────┐
-│                          GoodCodeCLI 核心架构                                 │
+│                          ClaudeCode 核心架构                                 │
 ├─────────────────────────────────────────────────────────────────────────────┤
 │                                                                             │
 │  🎯 核心定位                                                                 │
@@ -34,7 +34,7 @@ GoodCodeCLI 是一个功能强大的 AI 编程助手命令行工具，基于 Cla
 ## 目录结构
 
 ```
-goodCodeCli/src/
+claudecode/src/
 ├── main.tsx                    # 应用主入口
 ├── QueryEngine.ts              # AI 查询引擎核心
 ├── query.ts                    # 查询处理逻辑
@@ -496,4 +496,4 @@ type ToolPermissionContext = {
 
 ---
 
-> 本文档基于 GoodCodeCLI 源代码分析生成，描述了项目的核心架构和实现原理。
+> 本文档基于 ClaudeCode 源代码分析生成，描述了项目的核心架构和实现原理。

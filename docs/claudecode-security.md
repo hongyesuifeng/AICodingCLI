@@ -1,6 +1,6 @@
-# GoodCodeCLI 安全机制
+# ClaudeCode 安全机制
 
-本文档详细介绍 GoodCodeCLI 的安全机制设计。
+本文档详细介绍 ClaudeCode 的安全机制设计。
 
 ## 1. Bash 命令安全
 
@@ -375,4 +375,4 @@ export function validatePluginSource(repository: string): boolean {
 
 ---
 
-> 本文档基于 GoodCodeCLI 源代码分析生成， 详细描述了系统的安全机制设计。
+> 本文档基于 ClaudeCode 源代码分析生成， 详细描述了系统的安全机制设计。

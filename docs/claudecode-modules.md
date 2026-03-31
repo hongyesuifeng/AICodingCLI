@@ -1,6 +1,6 @@
-# GoodCodeCLI 模块详解
+# ClaudeCode 模块详解
 
-本文档详细介绍 GoodCodeCLI 各个核心模块的实现细节。
+本文档详细介绍 ClaudeCode 各个核心模块的实现细节。
 
 ## 1. Bridge 模块 - 远程桥接系统
 
@@ -858,4 +858,4 @@ export async function executeHooks(
 
 ---
 
-> 本文档基于 GoodCodeCLI 源代码分析生成，详细描述了各模块的实现细节。
+> 本文档基于 ClaudeCode 源代码分析生成，详细描述了各模块的实现细节。

@@ -3,10 +3,10 @@
 本文档提供从零开始学习到独立开发 AI 编程 CLI 工具的完整路线图。每个阶段都有明确的学习目标、推荐阅读的源码文件和实战练习。
 
 > **相关文档**:
-> - [GoodCodeCLI 架构详解](./goodcodecli-architecture.md) - 项目整体架构和目录结构
-> - [GoodCodeCLI 模块详解](./goodcodecli-modules.md) - 各模块实现细节
-> - [GoodCodeCLI API 参考](./goodcodecli-api.md) - 核心 API 接口说明
-> - [GoodCodeCLI 安全机制](./goodcodecli-security.md) - 安全设计详解
+> - [ClaudeCode 架构详解](./claudecode-architecture.md) - 项目整体架构和目录结构
+> - [ClaudeCode 模块详解](./claudecode-modules.md) - 各模块实现细节
+> - [ClaudeCode API 参考](./claudecode-api.md) - 核心 API 接口说明
+> - [ClaudeCode 安全机制](./claudecode-security.md) - 安全设计详解
 
 ## 目标
 
